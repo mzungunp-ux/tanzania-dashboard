@@ -1,0 +1,205 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tanzania National Resilience Dashboard Prototype</title>
+<style>
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    background: #f4f6f8;
+}
+header {
+    background: #0d3b66;
+    color: white;
+    padding: 20px;
+    text-align: center;
+}
+.container {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    padding: 20px;
+}
+.card {
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+.metric {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px 0;
+    font-size: 18px;
+}
+.alert {
+    background: #ffe6e6;
+    border-left: 5px solid #cc0000;
+    padding: 10px;
+    margin-top: 10px;
+}
+.map-box {
+    height: 400px;
+    background: linear-gradient(to bottom, #d9f0ff, #ffffff);
+    border-radius: 10px;
+    position: relative;
+    overflow: hidden;
+}
+.region {
+    position: absolute;
+    border-radius: 50%;
+    padding: 8px;
+    color: white;
+    font-size: 12px;
+    text-align: center;
+}
+.high { background: #c1121f; }
+.medium { background: #f77f00; }
+.low { background: #2a9d8f; }
+
+.flow {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 20px;
+}
+.node {
+    background: #0d3b66;
+    color: white;
+    padding: 10px 14px;
+    border-radius: 8px;
+    min-width: 120px;
+    text-align: center;
+}
+.center-node {
+    background: #c1121f;
+    font-weight: bold;
+}
+footer {
+    text-align: center;
+    padding: 20px;
+    color: #555;
+}
+</style>
+</head>
+<body>
+
+<header>
+<h1>Tanzania National Resilience & Risk Intelligence Prototype</h1>
+<p>Hybrid Technical Demonstration Concept</p>
+</header>
+
+<div class="container">
+
+<div class="card">
+<h2>National Risk Overview</h2>
+
+<div class="metric">
+<span>Flood Risk Level</span>
+<strong>HIGH</strong>
+</div>
+
+<div class="metric">
+<span>Population Exposed</span>
+<strong>2.3 Million</strong>
+</div>
+
+<div class="metric">
+<span>Critical Infrastructure at Risk</span>
+<strong>412 Assets</strong>
+</div>
+
+<div class="metric">
+<span>Estimated Economic Exposure</span>
+<strong>USD 1.2B</strong>
+</div>
+
+<div class="alert">
+⚠ Heavy rainfall forecast detected in Coastal & Central Corridors.
+</div>
+
+</div>
+
+<div class="card">
+<h2>Integrated Ministry Coordination Flow</h2>
+
+<div class="flow">
+<div class="node">TMA</div>
+<div class="node">Ministry of Lands</div>
+<div class="node">Agriculture</div>
+<div class="node">Finance</div>
+<div class="node">PO-RALG</div>
+<div class="node">Infrastructure</div>
+<div class="node center-node">National Resilience Intelligence Centre</div>
+<div class="node">Emergency Response</div>
+<div class="node">Planning</div>
+<div class="node">Insurance Sector</div>
+</div>
+
+<p style="margin-top:20px;">
+All ministries keep their mandates while sharing intelligence through a centralized resilience architecture.
+</p>
+
+</div>
+
+<div class="card">
+<h2>Live National Risk Map Simulation</h2>
+
+<div class="map-box">
+
+<div class="region high" style="top:80px; left:300px;">
+Dar es Salaam<br>Flood Risk
+</div>
+
+<div class="region medium" style="top:170px; left:220px;">
+Dodoma<br>Drought Risk
+</div>
+
+<div class="region high" style="top:240px; left:330px;">
+Morogoro<br>Landslide Risk
+</div>
+
+<div class="region low" style="top:120px; left:120px;">
+Mwanza<br>Low Risk
+</div>
+
+<div class="region medium" style="top:280px; left:100px;">
+Mbeya<br>Moderate Risk
+</div>
+
+</div>
+
+</div>
+
+<div class="card">
+<h2>Scenario Simulation</h2>
+
+<p><strong>Scenario:</strong> Cyclone landfall + Extreme Rainfall Event</p>
+
+<ul>
+<li>Projected districts affected: 18</li>
+<li>Road infrastructure exposure: 740 km</li>
+<li>Estimated emergency funding required: USD 74M</li>
+<li>Priority evacuation zones automatically identified</li>
+<li>Emergency dashboard shared with PMO and ministries</li>
+</ul>
+
+<h3>AI Decision Support</h3>
+<p>
+The system automatically combines climate forecasts, exposure data, population vulnerability,
+and infrastructure intelligence to support national decision-making before disaster impacts escalate.
+</p>
+
+</div>
+
+</div>
+
+<footer>
+Prototype Vision — Tanzania Predictive Resilience Architecture
+</footer>
+
+</body>
+</html>
