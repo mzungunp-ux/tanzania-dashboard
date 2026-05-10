@@ -1,205 +1,1884 @@
-
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<title>Tanzania National Resilience Dashboard Prototype</title>
 <style>
-body {
-    font-family: Arial, sans-serif;
-    margin: 0;
-    background: #f4f6f8;
-}
-header {
-    background: #0d3b66;
-    color: white;
-    padding: 20px;
-    text-align: center;
-}
-.container {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 20px;
-    padding: 20px;
-}
-.card {
-    background: white;
-    border-radius: 12px;
-    padding: 20px;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-}
-.metric {
-    display: flex;
-    justify-content: space-between;
-    margin: 10px 0;
-    font-size: 18px;
-}
-.alert {
-    background: #ffe6e6;
-    border-left: 5px solid #cc0000;
-    padding: 10px;
-    margin-top: 10px;
-}
-.map-box {
-    height: 400px;
-    background: linear-gradient(to bottom, #d9f0ff, #ffffff);
-    border-radius: 10px;
-    position: relative;
-    overflow: hidden;
-}
-.region {
-    position: absolute;
-    border-radius: 50%;
-    padding: 8px;
-    color: white;
-    font-size: 12px;
-    text-align: center;
-}
-.high { background: #c1121f; }
-.medium { background: #f77f00; }
-.low { background: #2a9d8f; }
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;600;700;900&family=Inter:wght@300;400;500;600&display=swap');
 
-.flow {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    gap: 12px;
-    margin-top: 20px;
-}
-.node {
-    background: #0d3b66;
-    color: white;
-    padding: 10px 14px;
-    border-radius: 8px;
-    min-width: 120px;
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --navy: #030d1e;
+    --navy2: #061428;
+    --navy3: #0a1f3c;
+    --navy4: #0f2a50;
+    --green: #00c896;
+    --green2: #00a87a;
+    --green3: #007a56;
+    --gold: #c8a84b;
+    --gold2: #e8c46a;
+    --red: #e63946;
+    --orange: #f4a261;
+    --blue: #4cc9f0;
+    --blue2: #48cae4;
+    --white: #f0f4f8;
+    --gray: #8ba3bc;
+    --gray2: #4a6580;
+    --glass: rgba(255,255,255,0.04);
+    --glass2: rgba(255,255,255,0.08);
+    --border: rgba(0,200,150,0.2);
+    --border2: rgba(0,200,150,0.1);
+  }
+
+  body {
+    background: var(--navy);
+    color: var(--white);
+    font-family: 'Inter', sans-serif;
+    overflow-x: hidden;
+    min-height: 100vh;
+  }
+
+  /* SCROLLBAR */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--navy2); }
+  ::-webkit-scrollbar-thumb { background: var(--green3); border-radius: 2px; }
+
+  /* NAV */
+  .nav {
+    position: sticky; top: 0; z-index: 100;
+    background: rgba(3,13,30,0.95);
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid var(--border);
+    padding: 0 2rem;
+    display: flex; align-items: center; justify-content: space-between;
+    height: 56px;
+  }
+  .nav-logo {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px; font-weight: 700;
+    color: var(--green);
+    letter-spacing: 2px;
+  }
+  .nav-logo span { color: var(--gold); }
+  .nav-tabs { display: flex; gap: 0; }
+  .nav-tab {
+    padding: 0 16px; height: 56px;
+    display: flex; align-items: center;
+    font-size: 11px; font-weight: 500;
+    color: var(--gray); cursor: pointer;
+    border-bottom: 2px solid transparent;
+    transition: all 0.2s; letter-spacing: 0.5px;
+    white-space: nowrap;
+  }
+  .nav-tab:hover { color: var(--white); }
+  .nav-tab.active { color: var(--green); border-bottom-color: var(--green); }
+  .nav-status {
+    display: flex; align-items: center; gap: 8px;
+    font-size: 11px; color: var(--gray);
+  }
+  .pulse-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--green);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { opacity: 1; transform: scale(1); }
+    50% { opacity: 0.5; transform: scale(0.8); }
+  }
+
+  /* SECTIONS */
+  .section { display: none; }
+  .section.active { display: block; }
+
+  /* ======================== LANDING ======================== */
+  .landing {
+    min-height: calc(100vh - 56px);
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    text-align: center; padding: 4rem 2rem;
+    position: relative; overflow: hidden;
+  }
+  .landing-grid {
+    position: absolute; inset: 0;
+    background-image:
+      linear-gradient(rgba(0,200,150,0.06) 1px, transparent 1px),
+      linear-gradient(90deg, rgba(0,200,150,0.06) 1px, transparent 1px);
+    background-size: 60px 60px;
+  }
+  .landing-glow {
+    position: absolute;
+    width: 600px; height: 600px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(0,200,150,0.12) 0%, transparent 70%);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    animation: glowPulse 4s ease-in-out infinite;
+  }
+  @keyframes glowPulse {
+    0%, 100% { transform: translate(-50%, -50%) scale(1); opacity: 0.6; }
+    50% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+  }
+  .landing-badge {
+    display: inline-flex; align-items: center; gap: 8px;
+    padding: 6px 16px; border-radius: 20px;
+    border: 1px solid var(--border);
+    background: var(--glass);
+    font-size: 11px; color: var(--green);
+    letter-spacing: 2px; font-weight: 600;
+    margin-bottom: 2rem;
+    animation: fadeInUp 0.8s ease both;
+  }
+  .landing-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.8rem, 4vw, 3.2rem);
+    font-weight: 900; line-height: 1.1;
+    margin-bottom: 1rem;
+    animation: fadeInUp 0.8s 0.1s ease both;
+  }
+  .landing-title .green { color: var(--green); }
+  .landing-title .gold { color: var(--gold); }
+  .landing-subtitle {
+    font-size: clamp(1rem, 2vw, 1.4rem);
+    color: var(--gray); font-weight: 300;
+    margin-bottom: 1rem;
+    animation: fadeInUp 0.8s 0.2s ease both;
+  }
+  .landing-tagline {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px; color: var(--gold);
+    letter-spacing: 3px; font-weight: 600;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.8s 0.3s ease both;
+  }
+  .landing-stats {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 1px; max-width: 800px; width: 100%;
+    border: 1px solid var(--border);
+    background: var(--border2); border-radius: 8px; overflow: hidden;
+    margin-bottom: 3rem;
+    animation: fadeInUp 0.8s 0.4s ease both;
+  }
+  .landing-stat {
+    padding: 1.5rem 1rem;
+    background: var(--glass);
     text-align: center;
-}
-.center-node {
-    background: #c1121f;
-    font-weight: bold;
-}
-footer {
-    text-align: center;
-    padding: 20px;
-    color: #555;
-}
+  }
+  .landing-stat .val {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.6rem; font-weight: 700;
+    color: var(--green); display: block;
+  }
+  .landing-stat .lbl { font-size: 10px; color: var(--gray); letter-spacing: 1px; margin-top: 4px; }
+  .landing-ctas { display: flex; gap: 1rem; animation: fadeInUp 0.8s 0.5s ease both; flex-wrap: wrap; justify-content: center; }
+  .btn-primary {
+    padding: 14px 32px; border-radius: 4px;
+    background: var(--green); color: var(--navy);
+    font-weight: 700; font-size: 13px; cursor: pointer;
+    border: none; letter-spacing: 1px;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-primary:hover { background: var(--green2); transform: translateY(-1px); }
+  .btn-secondary {
+    padding: 14px 32px; border-radius: 4px;
+    background: transparent; color: var(--white);
+    font-weight: 600; font-size: 13px; cursor: pointer;
+    border: 1px solid var(--border); letter-spacing: 1px;
+    transition: all 0.2s;
+    font-family: 'Inter', sans-serif;
+  }
+  .btn-secondary:hover { background: var(--glass2); }
+
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ======================== DASHBOARD ======================== */
+  .dashboard { padding: 1.5rem 2rem; }
+  .section-header {
+    display: flex; align-items: center; justify-content: space-between;
+    margin-bottom: 1.5rem;
+  }
+  .section-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px; font-weight: 700; color: var(--white);
+    letter-spacing: 1px;
+  }
+  .section-title span { color: var(--green); }
+  .timestamp { font-size: 11px; color: var(--gray); }
+
+  /* KPI GRID */
+  .kpi-grid {
+    display: grid; grid-template-columns: repeat(6, 1fr);
+    gap: 12px; margin-bottom: 1.5rem;
+  }
+  .kpi-card {
+    background: var(--glass);
+    border: 1px solid var(--border2);
+    border-radius: 8px; padding: 1rem;
+    position: relative; overflow: hidden;
+    transition: border-color 0.3s;
+  }
+  .kpi-card:hover { border-color: var(--border); }
+  .kpi-card::before {
+    content: ''; position: absolute;
+    top: 0; left: 0; right: 0; height: 2px;
+  }
+  .kpi-card.green::before { background: var(--green); }
+  .kpi-card.red::before { background: var(--red); }
+  .kpi-card.gold::before { background: var(--gold); }
+  .kpi-card.blue::before { background: var(--blue); }
+  .kpi-card.orange::before { background: var(--orange); }
+  .kpi-card.gray::before { background: var(--gray); }
+  .kpi-label { font-size: 10px; color: var(--gray); letter-spacing: 1px; margin-bottom: 8px; }
+  .kpi-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.4rem; font-weight: 700; color: var(--white);
+  }
+  .kpi-value.green { color: var(--green); }
+  .kpi-value.red { color: var(--red); }
+  .kpi-value.gold { color: var(--gold); }
+  .kpi-value.orange { color: var(--orange); }
+  .kpi-sub { font-size: 10px; color: var(--gray); margin-top: 4px; }
+  .kpi-trend { font-size: 10px; margin-top: 4px; }
+  .kpi-trend.up { color: var(--green); }
+  .kpi-trend.down { color: var(--red); }
+
+  /* MAIN GRID */
+  .main-grid {
+    display: grid; grid-template-columns: 1fr 340px;
+    gap: 16px; margin-bottom: 1.5rem;
+  }
+  .card {
+    background: var(--glass);
+    border: 1px solid var(--border2);
+    border-radius: 8px; padding: 1.2rem;
+  }
+  .card-title {
+    font-size: 11px; font-weight: 600; color: var(--green);
+    letter-spacing: 1px; margin-bottom: 1rem;
+    text-transform: uppercase;
+  }
+
+  /* TANZANIA MAP */
+  .map-container { position: relative; }
+  .tz-map {
+    width: 100%; border-radius: 6px;
+    background: var(--navy2);
+    border: 1px solid var(--border2);
+    overflow: hidden; position: relative;
+    height: 380px;
+  }
+  .map-svg { width: 100%; height: 100%; }
+
+  /* Region hover */
+  .region { cursor: pointer; transition: opacity 0.2s; }
+  .region:hover { opacity: 0.8; }
+
+  /* ALERTS */
+  .alert-list { display: flex; flex-direction: column; gap: 8px; }
+  .alert-item {
+    display: flex; align-items: flex-start; gap: 10px;
+    padding: 10px; border-radius: 6px;
+    border: 1px solid transparent;
+    font-size: 12px;
+  }
+  .alert-item.critical { background: rgba(230,57,70,0.1); border-color: rgba(230,57,70,0.3); }
+  .alert-item.high { background: rgba(244,162,97,0.1); border-color: rgba(244,162,97,0.3); }
+  .alert-item.medium { background: rgba(200,168,75,0.1); border-color: rgba(200,168,75,0.3); }
+  .alert-item.info { background: rgba(76,201,240,0.1); border-color: rgba(76,201,240,0.3); }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; margin-top: 3px; }
+  .alert-dot.critical { background: var(--red); animation: pulse 1.5s infinite; }
+  .alert-dot.high { background: var(--orange); }
+  .alert-dot.medium { background: var(--gold); }
+  .alert-dot.info { background: var(--blue); }
+  .alert-title { font-weight: 600; color: var(--white); margin-bottom: 2px; }
+  .alert-desc { color: var(--gray); font-size: 11px; }
+  .alert-time { font-size: 10px; color: var(--gray2); margin-top: 2px; }
+
+  /* BOTTOM GRID */
+  .bottom-grid {
+    display: grid; grid-template-columns: 1fr 1fr 1fr;
+    gap: 16px;
+  }
+
+  /* CHART */
+  .chart-bar-row {
+    display: flex; align-items: center; gap: 8px;
+    margin-bottom: 8px;
+  }
+  .chart-bar-label { font-size: 11px; color: var(--gray); width: 80px; flex-shrink: 0; }
+  .chart-bar-track {
+    flex: 1; height: 6px; background: var(--navy3); border-radius: 3px; overflow: hidden;
+  }
+  .chart-bar-fill {
+    height: 100%; border-radius: 3px;
+    transition: width 1s ease;
+  }
+  .chart-bar-val { font-size: 11px; color: var(--white); font-weight: 600; min-width: 40px; text-align: right; }
+
+  /* RISK MATRIX */
+  .risk-matrix {
+    display: grid; grid-template-columns: repeat(5, 1fr);
+    gap: 3px;
+  }
+  .risk-cell {
+    aspect-ratio: 1; border-radius: 3px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 600; cursor: pointer;
+    transition: transform 0.2s;
+  }
+  .risk-cell:hover { transform: scale(1.1); }
+
+  /* MINISTRY SECTION */
+  .ministry-container { padding: 1.5rem 2rem; }
+  .ministry-grid {
+    display: grid; grid-template-columns: 1fr 300px 1fr;
+    gap: 2rem; align-items: center;
+    min-height: 500px;
+  }
+  .ministry-list { display: flex; flex-direction: column; gap: 12px; }
+  .ministry-node {
+    display: flex; align-items: center; gap: 12px;
+    padding: 12px 16px; border-radius: 8px;
+    border: 1px solid var(--border2);
+    background: var(--glass); cursor: pointer;
+    transition: all 0.3s;
+    position: relative;
+  }
+  .ministry-node:hover, .ministry-node.active {
+    border-color: var(--border);
+    background: var(--glass2);
+  }
+  .ministry-node.active::after {
+    content: '';
+    position: absolute; right: -2rem; top: 50%;
+    transform: translateY(-50%);
+    width: 1.8rem; height: 2px;
+    background: linear-gradient(90deg, var(--green), transparent);
+  }
+  .ministry-right .ministry-node.active::after {
+    content: '';
+    position: absolute; left: -2rem; right: auto; top: 50%;
+    transform: translateY(-50%);
+    width: 1.8rem; height: 2px;
+    background: linear-gradient(270deg, var(--green), transparent);
+  }
+  .ministry-icon {
+    width: 36px; height: 36px; border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 16px; flex-shrink: 0;
+  }
+  .ministry-name { font-size: 12px; font-weight: 600; color: var(--white); }
+  .ministry-desc { font-size: 10px; color: var(--gray); margin-top: 2px; }
+
+  .nrric-hub {
+    text-align: center; padding: 2rem 1.5rem;
+    border: 2px solid var(--green);
+    border-radius: 12px; background: var(--glass2);
+    position: relative;
+  }
+  .nrric-hub::before {
+    content: ''; position: absolute;
+    inset: -4px; border-radius: 14px;
+    border: 1px solid rgba(0,200,150,0.2);
+  }
+  .nrric-title {
+    font-family: 'Orbitron', monospace;
+    font-size: 13px; font-weight: 700; color: var(--green);
+    letter-spacing: 1px; margin-bottom: 0.5rem;
+  }
+  .nrric-sub { font-size: 10px; color: var(--gray); margin-bottom: 1.5rem; letter-spacing: 1px; }
+  .nrric-functions { display: flex; flex-direction: column; gap: 8px; text-align: left; }
+  .nrric-fn {
+    display: flex; align-items: center; gap: 8px;
+    padding: 8px 10px; border-radius: 6px;
+    background: rgba(0,200,150,0.08);
+    font-size: 11px; color: var(--white);
+  }
+  .nrric-fn-num {
+    width: 20px; height: 20px; border-radius: 50%;
+    background: var(--green); color: var(--navy);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 9px; font-weight: 700; flex-shrink: 0;
+  }
+
+  /* SIMULATION */
+  .simulation-container { padding: 1.5rem 2rem; }
+  .sim-scenarios {
+    display: grid; grid-template-columns: repeat(4, 1fr);
+    gap: 12px; margin-bottom: 1.5rem;
+  }
+  .sim-card {
+    padding: 1.2rem; border-radius: 8px;
+    border: 2px solid var(--border2);
+    background: var(--glass); cursor: pointer;
+    text-align: center; transition: all 0.3s;
+  }
+  .sim-card:hover { border-color: var(--border); }
+  .sim-card.active { border-color: var(--green); background: rgba(0,200,150,0.08); }
+  .sim-icon { font-size: 2rem; margin-bottom: 8px; }
+  .sim-name { font-size: 12px; font-weight: 600; color: var(--white); }
+  .sim-category { font-size: 10px; color: var(--gray); margin-top: 4px; }
+
+  .sim-results {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  .sim-metric-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px;
+    margin-bottom: 1rem;
+  }
+  .sim-metric {
+    padding: 12px; border-radius: 6px;
+    background: var(--glass); border: 1px solid var(--border2);
+  }
+  .sim-metric-label { font-size: 10px; color: var(--gray); margin-bottom: 4px; }
+  .sim-metric-val {
+    font-family: 'Orbitron', monospace;
+    font-size: 1.1rem; font-weight: 700; color: var(--white);
+  }
+  .sim-metric-val.red { color: var(--red); }
+  .sim-metric-val.orange { color: var(--orange); }
+  .sim-metric-val.gold { color: var(--gold); }
+
+  .sim-districts { display: flex; flex-direction: column; gap: 6px; }
+  .sim-district-row {
+    display: flex; align-items: center; gap: 8px; font-size: 11px;
+  }
+  .sim-district-name { color: var(--gray); width: 100px; }
+  .sim-district-bar {
+    flex: 1; height: 4px; background: var(--navy3); border-radius: 2px; overflow: hidden;
+  }
+  .sim-district-fill { height: 100%; border-radius: 2px; }
+  .sim-district-level { font-size: 10px; font-weight: 600; width: 50px; text-align: right; }
+
+  /* ANALYTICS */
+  .analytics-container { padding: 1.5rem 2rem; }
+  .analytics-grid {
+    display: grid; grid-template-columns: 1fr 1fr;
+    gap: 16px; margin-bottom: 1.5rem;
+  }
+
+  /* SPARKLINE */
+  .sparkline-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 0; border-bottom: 1px solid var(--border2);
+    font-size: 12px;
+  }
+  .sparkline-row:last-child { border-bottom: none; }
+  .sl-label { width: 100px; color: var(--gray); }
+  .sl-spark { flex: 1; height: 30px; }
+  .sl-val { font-weight: 600; color: var(--white); width: 60px; text-align: right; }
+  .sl-change { font-size: 10px; width: 40px; text-align: right; }
+  .sl-change.up { color: var(--red); }
+  .sl-change.dn { color: var(--green); }
+
+  /* FINANCING GAP */
+  .fin-row {
+    margin-bottom: 10px;
+  }
+  .fin-header { display: flex; justify-content: space-between; font-size: 11px; margin-bottom: 4px; }
+  .fin-label { color: var(--gray); }
+  .fin-val { color: var(--white); font-weight: 600; }
+  .fin-track { height: 8px; background: var(--navy3); border-radius: 4px; overflow: hidden; }
+  .fin-fill { height: 100%; border-radius: 4px; }
+
+  /* PRESENTATION MODE */
+  .presentation-overlay {
+    display: none; position: fixed; inset: 0; z-index: 1000;
+    background: var(--navy); flex-direction: column;
+    align-items: center; justify-content: center;
+  }
+  .presentation-overlay.active { display: flex; }
+  .pres-slide {
+    display: none; text-align: center; padding: 3rem;
+    max-width: 900px; width: 100%;
+  }
+  .pres-slide.active { display: block; animation: fadeInUp 0.6s ease; }
+  .pres-progress {
+    position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%);
+    display: flex; gap: 8px;
+  }
+  .pres-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: var(--gray2); transition: background 0.3s;
+  }
+  .pres-dot.active { background: var(--green); }
+  .pres-close {
+    position: fixed; top: 1.5rem; right: 1.5rem;
+    padding: 8px 16px; border-radius: 4px;
+    background: var(--glass); border: 1px solid var(--border);
+    color: var(--white); cursor: pointer; font-size: 12px;
+    font-family: 'Inter', sans-serif;
+  }
+  .pres-nav {
+    position: fixed; bottom: 2rem; right: 2rem;
+    display: flex; gap: 8px;
+  }
+  .pres-btn {
+    padding: 10px 20px; border-radius: 4px;
+    border: 1px solid var(--border); background: var(--glass);
+    color: var(--white); cursor: pointer; font-size: 12px;
+    font-family: 'Inter', sans-serif; transition: all 0.2s;
+  }
+  .pres-btn:hover { background: var(--glass2); }
+  .pres-title {
+    font-family: 'Orbitron', monospace;
+    font-size: clamp(1.5rem, 3vw, 2.5rem);
+    font-weight: 900; margin-bottom: 1rem;
+  }
+  .pres-body { font-size: 14px; color: var(--gray); line-height: 1.8; }
+
+  /* REGION POPUP */
+  .region-popup {
+    display: none; position: absolute;
+    background: var(--navy2); border: 1px solid var(--border);
+    border-radius: 8px; padding: 12px 16px; z-index: 50;
+    font-size: 12px; min-width: 180px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    pointer-events: none;
+  }
+  .region-popup.show { display: block; }
+  .rp-title { font-weight: 700; color: var(--white); margin-bottom: 8px; font-size: 13px; }
+  .rp-row { display: flex; justify-content: space-between; gap: 16px; margin-bottom: 4px; }
+  .rp-label { color: var(--gray); }
+  .rp-val { color: var(--white); font-weight: 600; }
+
+  /* SCROLLABLE */
+  .scrollable { overflow-y: auto; }
+
+  /* RESPONSIVE HELPERS */
+  .flex-row { display: flex; gap: 12px; }
+  .flex-1 { flex: 1; min-width: 0; }
+
+  /* Animated counter */
+  .counter { display: inline-block; }
+
+  /* Tab selector for sim */
+  .tab-pills { display: flex; gap: 4px; margin-bottom: 1rem; }
+  .tab-pill {
+    padding: 6px 14px; border-radius: 4px; font-size: 11px;
+    border: 1px solid var(--border2); background: transparent;
+    color: var(--gray); cursor: pointer; font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+  .tab-pill.active {
+    background: rgba(0,200,150,0.15); border-color: var(--green);
+    color: var(--green);
+  }
+
+  /* Canvas charts */
+  .chart-wrap { position: relative; width: 100%; }
 </style>
 </head>
 <body>
 
-<header>
-<h1>Tanzania National Resilience & Risk Intelligence Prototype</h1>
-<p>Hybrid Technical Demonstration Concept</p>
-</header>
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-logo">TNRRIP <span>|</span> TZ</div>
+  <div class="nav-tabs">
+    <div class="nav-tab active" onclick="showSection('landing')">HOME</div>
+    <div class="nav-tab" onclick="showSection('dashboard')">OVERVIEW</div>
+    <div class="nav-tab" onclick="showSection('map')">RISK MAP</div>
+    <div class="nav-tab" onclick="showSection('ministry')">COORDINATION</div>
+    <div class="nav-tab" onclick="showSection('simulation')">SIMULATION</div>
+    <div class="nav-tab" onclick="showSection('analytics')">ANALYTICS</div>
+    <div class="nav-tab" onclick="startPresentation()">▶ PRESENT</div>
+  </div>
+  <div class="nav-status">
+    <div class="pulse-dot"></div>
+    LIVE SYSTEM · <span id="navTime"></span>
+  </div>
+</nav>
 
-<div class="container">
-
-<div class="card">
-<h2>National Risk Overview</h2>
-
-<div class="metric">
-<span>Flood Risk Level</span>
-<strong>HIGH</strong>
+<!-- ======================== LANDING ======================== -->
+<div class="section active" id="section-landing">
+  <div class="landing">
+    <div class="landing-grid"></div>
+    <div class="landing-glow"></div>
+    <div class="landing-badge">
+      <div class="pulse-dot"></div>
+      NATIONAL OPERATIONAL SYSTEM · TANZANIA
+    </div>
+    <h1 class="landing-title">
+      <span class="green">Tanzania</span> National<br>
+      Resilience & <span class="gold">Risk Intelligence</span><br>
+      Platform
+    </h1>
+    <p class="landing-subtitle">TNRRIP · Under PMO / Presidency</p>
+    <div class="landing-tagline">ONE NATIONAL SYSTEM — ONE RESILIENT TANZANIA</div>
+    <div class="landing-stats">
+      <div class="landing-stat">
+        <span class="val" id="l-pop">0</span>
+        <span class="lbl">POPULATION MONITORED</span>
+      </div>
+      <div class="landing-stat">
+        <span class="val" id="l-districts">0</span>
+        <span class="lbl">DISTRICTS TRACKED</span>
+      </div>
+      <div class="landing-stat">
+        <span class="val" id="l-ministries">0</span>
+        <span class="lbl">MINISTRIES INTEGRATED</span>
+      </div>
+      <div class="landing-stat">
+        <span class="val" id="l-score">0</span>
+        <span class="lbl">RESILIENCE SCORE</span>
+      </div>
+    </div>
+    <div class="landing-ctas">
+      <button class="btn-primary" onclick="showSection('dashboard')">ENTER PLATFORM</button>
+      <button class="btn-secondary" onclick="startPresentation()">▶ PRESENTATION MODE</button>
+    </div>
+  </div>
 </div>
 
-<div class="metric">
-<span>Population Exposed</span>
-<strong>2.3 Million</strong>
+<!-- ======================== DASHBOARD ======================== -->
+<div class="section" id="section-dashboard">
+  <div class="dashboard">
+    <div class="section-header">
+      <div class="section-title"><span>NATIONAL</span> OVERVIEW DASHBOARD</div>
+      <div class="timestamp">LAST UPDATED: <span id="dashTime"></span> EAT</div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-grid">
+      <div class="kpi-card red">
+        <div class="kpi-label">ACTIVE RISK ZONES</div>
+        <div class="kpi-value red">14</div>
+        <div class="kpi-trend down">▲ 3 from yesterday</div>
+      </div>
+      <div class="kpi-card green">
+        <div class="kpi-label">RESILIENCE SCORE</div>
+        <div class="kpi-value green">62.4</div>
+        <div class="kpi-trend up">▲ +2.1 this quarter</div>
+      </div>
+      <div class="kpi-card gold">
+        <div class="kpi-label">POPULATION EXPOSED</div>
+        <div class="kpi-value gold">4.2M</div>
+        <div class="kpi-sub">Flood + Drought zones</div>
+      </div>
+      <div class="kpi-card orange">
+        <div class="kpi-label">ECONOMIC EXPOSURE</div>
+        <div class="kpi-value orange">$890M</div>
+        <div class="kpi-sub">Estimated at risk</div>
+      </div>
+      <div class="kpi-card blue">
+        <div class="kpi-label">INFRA VULNERABILITY</div>
+        <div class="kpi-value" style="color:var(--blue)">38%</div>
+        <div class="kpi-sub">Roads, bridges, dams</div>
+      </div>
+      <div class="kpi-card gray">
+        <div class="kpi-label">EMERGENCY STATUS</div>
+        <div class="kpi-value orange">HIGH</div>
+        <div class="kpi-sub">3 regions elevated</div>
+      </div>
+    </div>
+
+    <!-- MAIN GRID -->
+    <div class="main-grid">
+      <!-- MAP -->
+      <div class="card map-container">
+        <div class="card-title">LIVE RISK MAP · TANZANIA</div>
+        <div class="tz-map" id="mainMap">
+          <svg class="map-svg" viewBox="0 0 500 500" xmlns="http://www.w3.org/2000/svg" id="tzSvg">
+            <!-- Tanzania stylized regions -->
+            <rect width="500" height="500" fill="#061428"/>
+            <!-- Grid lines -->
+            <line x1="100" y1="0" x2="100" y2="500" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+            <line x1="200" y1="0" x2="200" y2="500" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+            <line x1="300" y1="0" x2="300" y2="500" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+            <line x1="400" y1="0" x2="400" y2="500" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+            <line x1="0" y1="100" x2="500" y2="100" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+            <line x1="0" y1="200" x2="500" y2="200" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+            <line x1="0" y1="300" x2="500" y2="300" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+            <line x1="0" y1="400" x2="500" y2="400" stroke="rgba(0,200,150,0.05)" stroke-width="1"/>
+
+            <!-- Tanzania outline (stylized) -->
+            <g id="tzRegions">
+              <!-- COASTAL / DAR ES SALAAM - CRITICAL FLOOD -->
+              <polygon class="region" data-region="Dar es Salaam" points="340,280 380,260 410,290 400,330 360,340 330,310"
+                fill="rgba(230,57,70,0.6)" stroke="rgba(230,57,70,0.8)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Dar es Salaam','Critical','4.4M','$320M','Roads, Port, Airport','Emergency')"/>
+              <!-- KILIMANJARO - LANDSLIDE -->
+              <polygon class="region" data-region="Kilimanjaro" points="300,80 340,60 370,100 350,140 310,130 290,110"
+                fill="rgba(244,162,97,0.5)" stroke="rgba(244,162,97,0.7)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Kilimanjaro','High','1.6M','$145M','Highways, Railways','High Priority')"/>
+              <!-- LAKE VICTORIA ZONE -->
+              <ellipse class="region" cx="160" cy="180" rx="80" ry="60"
+                fill="rgba(76,201,240,0.3)" stroke="rgba(76,201,240,0.5)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Lake Victoria Zone','High','2.1M','$98M','Fisheries, Ports','High Priority')"/>
+              <!-- DODOMA (CENTER) -->
+              <polygon class="region" points="220,240 270,220 290,260 270,300 220,300 200,270"
+                fill="rgba(200,168,75,0.4)" stroke="rgba(200,168,75,0.6)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Dodoma (Capital)','Medium','1.0M','$45M','Water Supply, Roads','Medium Priority')"/>
+              <!-- MWANZA -->
+              <polygon class="region" points="130,140 180,120 200,160 180,190 140,190 120,165"
+                fill="rgba(0,200,150,0.4)" stroke="rgba(0,200,150,0.6)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Mwanza','Low-Medium','2.7M','$67M','Lake Infrastructure','Watch')"/>
+              <!-- MBEYA - DROUGHT -->
+              <polygon class="region" points="180,360 230,340 260,380 240,420 190,425 165,395"
+                fill="rgba(244,162,97,0.45)" stroke="rgba(244,162,97,0.6)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Mbeya','High','2.5M','$112M','Agriculture, Roads','High Priority')"/>
+              <!-- ZANZIBAR -->
+              <ellipse class="region" cx="420" cy="310" rx="25" ry="35"
+                fill="rgba(230,57,70,0.5)" stroke="rgba(230,57,70,0.7)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Zanzibar','Critical','1.6M','$89M','Coastal Infra, Tourism','Emergency')"/>
+              <!-- ARUSHA -->
+              <polygon class="region" points="260,100 300,80 310,130 290,150 255,145 240,120"
+                fill="rgba(0,200,150,0.35)" stroke="rgba(0,200,150,0.5)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Arusha','Low','1.9M','$55M','Tourism Infrastructure','Monitor')"/>
+              <!-- TABORA -->
+              <polygon class="region" points="150,240 200,220 220,260 200,300 155,305 130,270"
+                fill="rgba(200,168,75,0.35)" stroke="rgba(200,168,75,0.5)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Tabora','Medium','2.3M','$78M','Railways, Agriculture','Medium Priority')"/>
+              <!-- IRINGA -->
+              <polygon class="region" points="220,330 265,310 285,350 265,385 220,385 200,360"
+                fill="rgba(244,162,97,0.4)" stroke="rgba(244,162,97,0.6)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Iringa','Medium-High','1.8M','$92M','Hydropower, Forests','High Priority')"/>
+              <!-- LINDI - COASTAL -->
+              <polygon class="region" points="320,390 360,370 390,400 375,440 330,445 305,420"
+                fill="rgba(230,57,70,0.4)" stroke="rgba(230,57,70,0.6)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Lindi','High','0.9M','$56M','Coastal Infrastructure','High Priority')"/>
+              <!-- RUVUMA -->
+              <polygon class="region" points="230,430 280,410 310,450 290,480 240,480 215,460"
+                fill="rgba(200,168,75,0.35)" stroke="rgba(200,168,75,0.5)" stroke-width="1.5"
+                onclick="showRegionInfo(event,'Ruvuma','Medium','0.9M','$41M','Agriculture, Border','Monitor')"/>
+            </g>
+
+            <!-- Animated hotspots -->
+            <g id="hotspots">
+              <circle cx="365" cy="300" r="8" fill="rgba(230,57,70,0)" stroke="rgba(230,57,70,0.8)" stroke-width="2">
+                <animate attributeName="r" values="8;20;8" dur="2s" repeatCount="indefinite"/>
+                <animate attributeName="stroke-opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="365" cy="300" r="4" fill="rgba(230,57,70,0.9)"/>
+
+              <circle cx="420" cy="310" r="6" fill="rgba(230,57,70,0)" stroke="rgba(230,57,70,0.7)" stroke-width="2">
+                <animate attributeName="r" values="6;16;6" dur="2.5s" repeatCount="indefinite"/>
+                <animate attributeName="stroke-opacity" values="0.7;0;0.7" dur="2.5s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="420" cy="310" r="3" fill="rgba(230,57,70,0.9)"/>
+
+              <circle cx="325" cy="390" r="5" fill="rgba(244,162,97,0)" stroke="rgba(244,162,97,0.7)" stroke-width="2">
+                <animate attributeName="r" values="5;14;5" dur="3s" repeatCount="indefinite"/>
+                <animate attributeName="stroke-opacity" values="0.7;0;0.7" dur="3s" repeatCount="indefinite"/>
+              </circle>
+              <circle cx="325" cy="390" r="3" fill="rgba(244,162,97,0.9)"/>
+            </g>
+
+            <!-- Labels -->
+            <text x="365" y="300" text-anchor="middle" fill="white" font-size="8" font-weight="600" dy="-15">Dar es Salaam</text>
+            <text x="320" y="100" text-anchor="middle" fill="white" font-size="8" font-weight="600">Kilimanjaro</text>
+            <text x="160" y="178" text-anchor="middle" fill="white" font-size="9" font-weight="600">Lake Victoria</text>
+            <text x="245" y="260" text-anchor="middle" fill="white" font-size="8">Dodoma ★</text>
+            <text x="155" y="162" text-anchor="middle" fill="white" font-size="8">Mwanza</text>
+            <text x="213" y="382" text-anchor="middle" fill="white" font-size="8">Mbeya</text>
+            <text x="419" y="310" text-anchor="middle" fill="white" font-size="8">Zanzibar</text>
+
+            <!-- Legend -->
+            <rect x="10" y="440" width="140" height="55" rx="4" fill="rgba(6,20,40,0.9)" stroke="rgba(0,200,150,0.3)" stroke-width="1"/>
+            <circle cx="22" cy="453" r="5" fill="rgba(230,57,70,0.7)"/>
+            <text x="32" y="457" fill="#8ba3bc" font-size="9">Critical Risk</text>
+            <circle cx="22" cy="468" r="5" fill="rgba(244,162,97,0.7)"/>
+            <text x="32" y="472" fill="#8ba3bc" font-size="9">High Risk</text>
+            <circle cx="22" cy="483" r="5" fill="rgba(200,168,75,0.7)"/>
+            <text x="32" y="487" fill="#8ba3bc" font-size="9">Medium Risk</text>
+            <circle cx="90" cy="453" r="5" fill="rgba(0,200,150,0.7)"/>
+            <text x="100" y="457" fill="#8ba3bc" font-size="9">Low Risk</text>
+            <circle cx="90" cy="468" r="5" fill="rgba(76,201,240,0.7)"/>
+            <text x="100" y="472" fill="#8ba3bc" font-size="9">Water Body</text>
+          </svg>
+
+          <!-- Region popup -->
+          <div class="region-popup" id="regionPopup">
+            <div class="rp-title" id="rp-title">Region Name</div>
+            <div class="rp-row"><span class="rp-label">Risk Level</span><span class="rp-val" id="rp-risk">-</span></div>
+            <div class="rp-row"><span class="rp-label">Population</span><span class="rp-val" id="rp-pop">-</span></div>
+            <div class="rp-row"><span class="rp-label">Economic Exposure</span><span class="rp-val" id="rp-eco">-</span></div>
+            <div class="rp-row"><span class="rp-label">Infrastructure</span><span class="rp-val" id="rp-infra">-</span></div>
+            <div class="rp-row"><span class="rp-label">Priority</span><span class="rp-val" id="rp-pri">-</span></div>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:8px;">
+          <button class="tab-pill active" onclick="filterMap('all',this)">ALL HAZARDS</button>
+          <button class="tab-pill" onclick="filterMap('flood',this)">FLOOD</button>
+          <button class="tab-pill" onclick="filterMap('drought',this)">DROUGHT</button>
+          <button class="tab-pill" onclick="filterMap('cyclone',this)">CYCLONE</button>
+        </div>
+      </div>
+
+      <!-- ALERTS -->
+      <div class="card">
+        <div class="card-title">LIVE ALERTS & WARNINGS</div>
+        <div class="alert-list">
+          <div class="alert-item critical">
+            <div class="alert-dot critical"></div>
+            <div>
+              <div class="alert-title">🌊 Flood Risk — Coastal Corridor</div>
+              <div class="alert-desc">Dar es Salaam & Zanzibar: Extreme rainfall forecast. Emergency reserves recommended.</div>
+              <div class="alert-time">2 min ago · CRITICAL</div>
+            </div>
+          </div>
+          <div class="alert-item high">
+            <div class="alert-dot high"></div>
+            <div>
+              <div class="alert-title">🌀 Cyclone Watch — Indian Ocean</div>
+              <div class="alert-desc">Category 2 system developing. Lindi, Mtwara coastal zones on alert.</div>
+              <div class="alert-time">18 min ago · HIGH</div>
+            </div>
+          </div>
+          <div class="alert-item high">
+            <div class="alert-dot high"></div>
+            <div>
+              <div class="alert-title">🏗️ Infrastructure Exposure — A7 Road</div>
+              <div class="alert-desc">Flooding risk detected. Emergency protection deployment advised.</div>
+              <div class="alert-time">34 min ago · HIGH</div>
+            </div>
+          </div>
+          <div class="alert-item medium">
+            <div class="alert-dot medium"></div>
+            <div>
+              <div class="alert-title">🌾 Drought Escalation — Southern Highlands</div>
+              <div class="alert-desc">Mbeya, Iringa: Agricultural stress indicators rising. Food security watch.</div>
+              <div class="alert-time">1h ago · MEDIUM</div>
+            </div>
+          </div>
+          <div class="alert-item info">
+            <div class="alert-dot info"></div>
+            <div>
+              <div class="alert-title">💰 Emergency Reserve Deployment</div>
+              <div class="alert-desc">Ministry of Finance: $12M contingency activation recommended.</div>
+              <div class="alert-time">2h ago · ACTION REQUIRED</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- BOTTOM GRID -->
+    <div class="bottom-grid">
+      <!-- Regional Risk Scores -->
+      <div class="card">
+        <div class="card-title">REGIONAL RISK SCORES</div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Dar es Salaam</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:88%;background:var(--red)"></div></div>
+          <div class="chart-bar-val" style="color:var(--red)">88</div>
+        </div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Zanzibar</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:85%;background:var(--red)"></div></div>
+          <div class="chart-bar-val" style="color:var(--red)">85</div>
+        </div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Kilimanjaro</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:72%;background:var(--orange)"></div></div>
+          <div class="chart-bar-val" style="color:var(--orange)">72</div>
+        </div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Lindi</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:68%;background:var(--orange)"></div></div>
+          <div class="chart-bar-val" style="color:var(--orange)">68</div>
+        </div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Mbeya</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:65%;background:var(--orange)"></div></div>
+          <div class="chart-bar-val" style="color:var(--orange)">65</div>
+        </div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Iringa</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:58%;background:var(--gold)"></div></div>
+          <div class="chart-bar-val" style="color:var(--gold)">58</div>
+        </div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Dodoma</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:45%;background:var(--gold)"></div></div>
+          <div class="chart-bar-val" style="color:var(--gold)">45</div>
+        </div>
+        <div class="chart-bar-row">
+          <div class="chart-bar-label">Arusha</div>
+          <div class="chart-bar-track"><div class="chart-bar-fill" style="width:35%;background:var(--green)"></div></div>
+          <div class="chart-bar-val" style="color:var(--green)">35</div>
+        </div>
+      </div>
+
+      <!-- Risk Matrix -->
+      <div class="card">
+        <div class="card-title">RISK PROBABILITY MATRIX</div>
+        <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--gray);margin-bottom:6px;">
+          <span>← IMPACT →</span>
+          <span>LOW · MED · HIGH · V.HIGH · EXTREME</span>
+        </div>
+        <div class="risk-matrix" id="riskMatrix">
+          <!-- 5x5 risk matrix cells generated by JS -->
+        </div>
+        <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap;">
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gray)">
+            <div style="width:10px;height:10px;background:rgba(0,200,150,0.6);border-radius:2px"></div>Low
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gray)">
+            <div style="width:10px;height:10px;background:rgba(200,168,75,0.7);border-radius:2px"></div>Medium
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gray)">
+            <div style="width:10px;height:10px;background:rgba(244,162,97,0.7);border-radius:2px"></div>High
+          </div>
+          <div style="display:flex;align-items:center;gap:4px;font-size:10px;color:var(--gray)">
+            <div style="width:10px;height:10px;background:rgba(230,57,70,0.7);border-radius:2px"></div>Critical
+          </div>
+        </div>
+      </div>
+
+      <!-- Infrastructure Exposure -->
+      <div class="card">
+        <div class="card-title">INFRASTRUCTURE EXPOSURE</div>
+        <div class="fin-row">
+          <div class="fin-header"><span class="fin-label">Roads & Bridges</span><span class="fin-val">42% at risk</span></div>
+          <div class="fin-track"><div class="fin-fill" style="width:42%;background:var(--red)"></div></div>
+        </div>
+        <div class="fin-row">
+          <div class="fin-header"><span class="fin-label">Energy Grid</span><span class="fin-val">31% at risk</span></div>
+          <div class="fin-track"><div class="fin-fill" style="width:31%;background:var(--orange)"></div></div>
+        </div>
+        <div class="fin-row">
+          <div class="fin-header"><span class="fin-label">Water Systems</span><span class="fin-val">28% at risk</span></div>
+          <div class="fin-track"><div class="fin-fill" style="width:28%;background:var(--orange)"></div></div>
+        </div>
+        <div class="fin-row">
+          <div class="fin-header"><span class="fin-label">Health Facilities</span><span class="fin-val">22% at risk</span></div>
+          <div class="fin-track"><div class="fin-fill" style="width:22%;background:var(--gold)"></div></div>
+        </div>
+        <div class="fin-row">
+          <div class="fin-header"><span class="fin-label">Schools</span><span class="fin-val">19% at risk</span></div>
+          <div class="fin-track"><div class="fin-fill" style="width:19%;background:var(--gold)"></div></div>
+        </div>
+        <div class="fin-row">
+          <div class="fin-header"><span class="fin-label">Ports & Airports</span><span class="fin-val">35% at risk</span></div>
+          <div class="fin-track"><div class="fin-fill" style="width:35%;background:var(--orange)"></div></div>
+        </div>
+        <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border2)">
+          <div style="font-size:10px;color:var(--gray)">TOTAL ESTIMATED LOSS EXPOSURE</div>
+          <div style="font-family:'Orbitron',monospace;font-size:1.2rem;color:var(--red);font-weight:700;margin-top:4px">$2.4 BILLION</div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="metric">
-<span>Critical Infrastructure at Risk</span>
-<strong>412 Assets</strong>
+<!-- ======================== MAP SECTION ======================== -->
+<div class="section" id="section-map">
+  <div class="dashboard">
+    <div class="section-header">
+      <div class="section-title"><span>LIVE</span> TANZANIA RISK MAP</div>
+      <div style="display:flex;gap:8px;">
+        <button class="tab-pill active" onclick="setMapLayer('flood',this)">🌊 FLOOD</button>
+        <button class="tab-pill" onclick="setMapLayer('drought',this)">☀️ DROUGHT</button>
+        <button class="tab-pill" onclick="setMapLayer('landslide',this)">⛰️ LANDSLIDE</button>
+        <button class="tab-pill" onclick="setMapLayer('cyclone',this)">🌀 CYCLONE</button>
+      </div>
+    </div>
+    <div style="display:grid;grid-template-columns:1fr 280px;gap:16px;">
+      <div class="card">
+        <div style="background:var(--navy2);border-radius:6px;height:500px;position:relative;overflow:hidden;">
+          <svg width="100%" height="100%" viewBox="0 0 600 500">
+            <rect width="600" height="500" fill="#061428"/>
+            <defs>
+              <radialGradient id="floodGrad" cx="50%" cy="50%" r="50%">
+                <stop offset="0%" stop-color="#4cc9f0" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#4cc9f0" stop-opacity="0"/>
+              </radialGradient>
+            </defs>
+            <!-- Tanzania outline rough shape -->
+            <path d="M150,50 L400,40 L480,120 L490,200 L460,300 L440,380 L400,460 L300,470 L200,460 L120,400 L80,300 L90,200 L120,100 Z"
+              fill="rgba(0,200,150,0.05)" stroke="rgba(0,200,150,0.4)" stroke-width="2"/>
+            <!-- Flood zones -->
+            <ellipse id="floodZone1" cx="420" cy="280" rx="70" ry="50" fill="rgba(76,201,240,0.35)" stroke="rgba(76,201,240,0.6)" stroke-width="1.5"/>
+            <ellipse id="floodZone2" cx="200" cy="200" rx="60" ry="45" fill="rgba(76,201,240,0.3)" stroke="rgba(76,201,240,0.5)" stroke-width="1.5"/>
+            <ellipse id="floodZone3" cx="350" cy="380" rx="50" ry="35" fill="rgba(230,57,70,0.3)" stroke="rgba(230,57,70,0.5)" stroke-width="1.5"/>
+            <!-- District grid -->
+            <line x1="150" y1="50" x2="150" y2="470" stroke="rgba(0,200,150,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="250" y1="50" x2="250" y2="470" stroke="rgba(0,200,150,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="350" y1="50" x2="350" y2="470" stroke="rgba(0,200,150,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="450" y1="50" x2="450" y2="470" stroke="rgba(0,200,150,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="80" y1="150" x2="490" y2="150" stroke="rgba(0,200,150,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="80" y1="250" x2="490" y2="250" stroke="rgba(0,200,150,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <line x1="80" y1="350" x2="490" y2="350" stroke="rgba(0,200,150,0.08)" stroke-width="1" stroke-dasharray="4,4"/>
+            <!-- Animated scan line -->
+            <line id="scanLine" x1="80" y1="50" x2="490" y2="50" stroke="rgba(0,200,150,0.5)" stroke-width="1">
+              <animate attributeName="y1" values="50;460;50" dur="4s" repeatCount="indefinite"/>
+              <animate attributeName="y2" values="50;460;50" dur="4s" repeatCount="indefinite"/>
+            </line>
+            <!-- Risk hotspots -->
+            <circle cx="420" cy="280" r="12" fill="rgba(230,57,70,0)" stroke="rgba(230,57,70,0.8)" stroke-width="2">
+              <animate attributeName="r" values="12;28;12" dur="2s" repeatCount="indefinite"/>
+              <animate attributeName="stroke-opacity" values="0.8;0;0.8" dur="2s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="420" cy="280" r="5" fill="#e63946"/>
+            <circle cx="200" cy="200" r="10" fill="rgba(244,162,97,0)" stroke="rgba(244,162,97,0.7)" stroke-width="2">
+              <animate attributeName="r" values="10;22;10" dur="2.8s" repeatCount="indefinite"/>
+              <animate attributeName="stroke-opacity" values="0.7;0;0.7" dur="2.8s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="200" cy="200" r="4" fill="#f4a261"/>
+            <circle cx="350" cy="380" r="8" fill="rgba(230,57,70,0)" stroke="rgba(230,57,70,0.6)" stroke-width="2">
+              <animate attributeName="r" values="8;20;8" dur="3.5s" repeatCount="indefinite"/>
+              <animate attributeName="stroke-opacity" values="0.6;0;0.6" dur="3.5s" repeatCount="indefinite"/>
+            </circle>
+            <circle cx="350" cy="380" r="4" fill="#e63946"/>
+            <!-- Labels -->
+            <text x="420" y="265" text-anchor="middle" fill="white" font-size="10" font-weight="700">DAR ES SALAAM</text>
+            <text x="420" y="277" text-anchor="middle" fill="#e63946" font-size="9">CRITICAL FLOOD RISK</text>
+            <text x="200" y="190" text-anchor="middle" fill="white" font-size="9" font-weight="600">Lake Victoria</text>
+            <text x="350" y="370" text-anchor="middle" fill="white" font-size="9" font-weight="600">Lindi Coast</text>
+            <!-- Compass -->
+            <text x="550" y="60" text-anchor="middle" fill="var(--green)" font-size="14" font-weight="900">N</text>
+            <line x1="550" y1="65" x2="550" y2="85" stroke="var(--green)" stroke-width="1"/>
+            <text x="550" y="100" text-anchor="middle" fill="var(--gray)" font-size="10">S</text>
+            <!-- Coordinates -->
+            <text x="100" y="490" fill="var(--gray2)" font-size="8">-11.7°S / 34.8°E — -1.0°S / 40.4°E</text>
+          </svg>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:12px;">
+        <div class="card">
+          <div class="card-title">SELECTED REGION</div>
+          <div style="text-align:center;padding:1rem 0;">
+            <div style="font-family:'Orbitron',monospace;font-size:1.2rem;color:var(--green);margin-bottom:8px">Dar es Salaam</div>
+            <div style="display:inline-block;padding:4px 12px;background:rgba(230,57,70,0.2);border:1px solid var(--red);border-radius:4px;font-size:11px;color:var(--red);font-weight:600;margin-bottom:1rem">CRITICAL RISK</div>
+            <div class="sim-metric-grid" style="margin-top:0">
+              <div class="sim-metric"><div class="sim-metric-label">Population</div><div class="sim-metric-val">4.4M</div></div>
+              <div class="sim-metric"><div class="sim-metric-label">Exposure</div><div class="sim-metric-val red">$320M</div></div>
+              <div class="sim-metric"><div class="sim-metric-label">Risk Score</div><div class="sim-metric-val red">88/100</div></div>
+              <div class="sim-metric"><div class="sim-metric-label">Priority</div><div class="sim-metric-val orange">EMERGENCY</div></div>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">HAZARD LAYERS ACTIVE</div>
+          <div style="display:flex;flex-direction:column;gap:8px;">
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+              <span style="color:var(--gray)">🌊 Flood Risk</span>
+              <span style="color:var(--red);font-weight:600">ACTIVE</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+              <span style="color:var(--gray)">🌀 Cyclone Path</span>
+              <span style="color:var(--orange);font-weight:600">WATCH</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+              <span style="color:var(--gray)">⛰️ Landslide</span>
+              <span style="color:var(--gold);font-weight:600">MONITOR</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+              <span style="color:var(--gray)">☀️ Drought</span>
+              <span style="color:var(--gold);font-weight:600">ELEVATED</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;align-items:center;font-size:12px;">
+              <span style="color:var(--gray)">🏗️ Infra Exposure</span>
+              <span style="color:var(--blue);font-weight:600">LOADING</span>
+            </div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">AI RECOMMENDATIONS</div>
+          <div style="font-size:11px;color:var(--gray);line-height:1.7;">
+            <div style="padding:8px;background:rgba(230,57,70,0.08);border-left:2px solid var(--red);margin-bottom:8px;border-radius:0 4px 4px 0;">
+              Deploy emergency reserves to coastal zone. Estimated $12M required.
+            </div>
+            <div style="padding:8px;background:rgba(244,162,97,0.08);border-left:2px solid var(--orange);margin-bottom:8px;border-radius:0 4px 4px 0;">
+              Activate pre-positioned cyclone response kits in Lindi.
+            </div>
+            <div style="padding:8px;background:rgba(76,201,240,0.08);border-left:2px solid var(--blue);border-radius:0 4px 4px 0;">
+              Coordinate with TMA for 72-hour updated forecast briefing.
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="metric">
-<span>Estimated Economic Exposure</span>
-<strong>USD 1.2B</strong>
+<!-- ======================== MINISTRY ======================== -->
+<div class="section" id="section-ministry">
+  <div class="ministry-container">
+    <div class="section-header">
+      <div class="section-title"><span>MINISTRY</span> COORDINATION ARCHITECTURE</div>
+      <div style="font-size:11px;color:var(--green)">ONE NATIONAL SYSTEM · MANY INSTITUTIONS · ONE GOAL</div>
+    </div>
+    <div class="ministry-grid">
+      <!-- LEFT: DATA PROVIDERS -->
+      <div>
+        <div style="font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:1rem;font-weight:600">DATA PROVIDERS</div>
+        <div class="ministry-list" id="providerList">
+          <div class="ministry-node active" onclick="selectMinistry(this,'tma')">
+            <div class="ministry-icon" style="background:rgba(76,201,240,0.15)">🌧️</div>
+            <div><div class="ministry-name">TMA</div><div class="ministry-desc">Weather, climate, forecasts</div></div>
+          </div>
+          <div class="ministry-node" onclick="selectMinistry(this,'lands')">
+            <div class="ministry-icon" style="background:rgba(0,200,150,0.15)">🗺️</div>
+            <div><div class="ministry-name">Ministry of Lands</div><div class="ministry-desc">Spatial data, cadastre</div></div>
+          </div>
+          <div class="ministry-node" onclick="selectMinistry(this,'agri')">
+            <div class="ministry-icon" style="background:rgba(200,168,75,0.15)">🌾</div>
+            <div><div class="ministry-name">Ministry of Agriculture</div><div class="ministry-desc">Drought, food security data</div></div>
+          </div>
+          <div class="ministry-node" onclick="selectMinistry(this,'works')">
+            <div class="ministry-icon" style="background:rgba(244,162,97,0.15)">🛣️</div>
+            <div><div class="ministry-name">Ministry of Works</div><div class="ministry-desc">Roads, bridges, railways</div></div>
+          </div>
+          <div class="ministry-node" onclick="selectMinistry(this,'water')">
+            <div class="ministry-icon" style="background:rgba(76,201,240,0.15)">💧</div>
+            <div><div class="ministry-name">Ministry of Water</div><div class="ministry-desc">Dams, reservoirs, hydrology</div></div>
+          </div>
+          <div class="ministry-node" onclick="selectMinistry(this,'poralg')">
+            <div class="ministry-icon" style="background:rgba(230,57,70,0.15)">🏛️</div>
+            <div><div class="ministry-name">PO-RALG</div><div class="ministry-desc">Local government data</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- CENTER: NRRIC HUB -->
+      <div>
+        <div class="nrric-hub">
+          <div style="font-size:24px;margin-bottom:8px;">🛡️</div>
+          <div class="nrric-title">NATIONAL RESILIENCE &<br>RISK INTELLIGENCE<br>CENTRE</div>
+          <div class="nrric-sub">NRRIC · UNDER PMO / PRESIDENCY</div>
+          <div class="nrric-functions">
+            <div class="nrric-fn"><div class="nrric-fn-num">1</div>National Risk Data Hub</div>
+            <div class="nrric-fn"><div class="nrric-fn-num">2</div>Vulnerability & Exposure Analysis</div>
+            <div class="nrric-fn"><div class="nrric-fn-num">3</div>Disaster Financing & Risk Modelling</div>
+            <div class="nrric-fn"><div class="nrric-fn-num">4</div>Early Warning & Decision Support</div>
+            <div class="nrric-fn"><div class="nrric-fn-num">5</div>Strategic Planning & Policy</div>
+          </div>
+          <div id="ministryInfo" style="margin-top:1rem;padding-top:1rem;border-top:1px solid var(--border);text-align:left;font-size:11px;color:var(--gray);min-height:60px;">
+            Select a ministry to see data flows and integration details.
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT: INTELLIGENCE CONSUMERS -->
+      <div>
+        <div style="font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:1rem;font-weight:600;text-align:right">INTELLIGENCE CONSUMERS</div>
+        <div class="ministry-list ministry-right" style="align-items:flex-end;">
+          <div class="ministry-node" style="flex-direction:row-reverse;" onclick="selectConsumer(this,'finance')">
+            <div class="ministry-icon" style="background:rgba(200,168,75,0.15)">💰</div>
+            <div style="text-align:right"><div class="ministry-name">Ministry of Finance</div><div class="ministry-desc">Budgeting, contingency funds</div></div>
+          </div>
+          <div class="ministry-node" style="flex-direction:row-reverse;" onclick="selectConsumer(this,'mdas')">
+            <div class="ministry-icon" style="background:rgba(76,201,240,0.15)">🏢</div>
+            <div style="text-align:right"><div class="ministry-name">Ministries & MDAs</div><div class="ministry-desc">Sector planning, investments</div></div>
+          </div>
+          <div class="ministry-node" style="flex-direction:row-reverse;" onclick="selectConsumer(this,'planning')">
+            <div class="ministry-icon" style="background:rgba(0,200,150,0.15)">📊</div>
+            <div style="text-align:right"><div class="ministry-name">Ministry of Planning</div><div class="ministry-desc">Development, PPPs, appraisal</div></div>
+          </div>
+          <div class="ministry-node" style="flex-direction:row-reverse;" onclick="selectConsumer(this,'insurance')">
+            <div class="ministry-icon" style="background:rgba(244,162,97,0.15)">☂️</div>
+            <div style="text-align:right"><div class="ministry-name">Insurance Sector</div><div class="ministry-desc">Risk transfer, products</div></div>
+          </div>
+          <div class="ministry-node" style="flex-direction:row-reverse;" onclick="selectConsumer(this,'donors')">
+            <div class="ministry-icon" style="background:rgba(230,57,70,0.15)">🌍</div>
+            <div style="text-align:right"><div class="ministry-name">Development Partners</div><div class="ministry-desc">Funding, climate finance</div></div>
+          </div>
+          <div class="ministry-node" style="flex-direction:row-reverse;" onclick="selectConsumer(this,'community')">
+            <div class="ministry-icon" style="background:rgba(200,168,75,0.15)">👥</div>
+            <div style="text-align:right"><div class="ministry-name">Communities</div><div class="ministry-desc">Preparedness, local solutions</div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTPUTS ROW -->
+    <div style="margin-top:2rem;padding-top:1.5rem;border-top:1px solid var(--border2);">
+      <div style="font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:1rem;font-weight:600;text-align:center">NRRIC OUTPUTS</div>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:12px;">
+        <div style="text-align:center;padding:1rem;border:1px solid var(--border2);border-radius:8px;background:var(--glass);">
+          <div style="font-size:1.5rem;margin-bottom:6px">📊</div>
+          <div style="font-size:11px;font-weight:600;color:var(--white)">Risk Dashboards</div>
+          <div style="font-size:10px;color:var(--gray);margin-top:2px">& Reports</div>
+        </div>
+        <div style="text-align:center;padding:1rem;border:1px solid var(--border2);border-radius:8px;background:var(--glass);">
+          <div style="font-size:1.5rem;margin-bottom:6px">📈</div>
+          <div style="font-size:11px;font-weight:600;color:var(--white)">Scenario & Loss</div>
+          <div style="font-size:10px;color:var(--gray);margin-top:2px">Estimates</div>
+        </div>
+        <div style="text-align:center;padding:1rem;border:1px solid var(--border2);border-radius:8px;background:var(--glass);">
+          <div style="font-size:1.5rem;margin-bottom:6px">🔔</div>
+          <div style="font-size:11px;font-weight:600;color:var(--white)">Early Warning</div>
+          <div style="font-size:10px;color:var(--gray);margin-top:2px">Alerts</div>
+        </div>
+        <div style="text-align:center;padding:1rem;border:1px solid var(--border2);border-radius:8px;background:var(--glass);">
+          <div style="font-size:1.5rem;margin-bottom:6px">💵</div>
+          <div style="font-size:11px;font-weight:600;color:var(--white)">Financing</div>
+          <div style="font-size:10px;color:var(--gray);margin-top:2px">Recommendations</div>
+        </div>
+        <div style="text-align:center;padding:1rem;border:1px solid var(--border2);border-radius:8px;background:var(--glass);">
+          <div style="font-size:1.5rem;margin-bottom:6px">📋</div>
+          <div style="font-size:11px;font-weight:600;color:var(--white)">Policy Guidance</div>
+          <div style="font-size:10px;color:var(--gray);margin-top:2px">& Planning</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- OUTCOMES -->
+    <div style="margin-top:1.5rem;padding:1.5rem;border:1px solid var(--border);border-radius:8px;background:var(--glass);text-align:center;">
+      <div style="font-size:10px;color:var(--green);letter-spacing:2px;margin-bottom:1rem;font-weight:600">OUTCOMES</div>
+      <div style="display:flex;justify-content:center;gap:2rem;flex-wrap:wrap;">
+        <div style="font-size:12px;color:var(--white)">📉 Reduced Disaster Losses</div>
+        <div style="font-size:12px;color:var(--white)">⚡ Better Preparedness</div>
+        <div style="font-size:12px;color:var(--white)">🏙️ Smart & Resilient Investments</div>
+        <div style="font-size:12px;color:var(--white)">🤝 Improved Service Delivery</div>
+        <div style="font-size:12px;color:var(--white)">🛡️ Stronger National Resilience</div>
+      </div>
+      <div style="margin-top:1rem;font-family:'Orbitron',monospace;font-size:13px;color:var(--gold);letter-spacing:2px;font-weight:700">
+        🇹🇿 RESILIENT TANZANIA · SAFER PEOPLE · STRONGER ECONOMY · SUSTAINABLE FUTURE
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="alert">
-⚠ Heavy rainfall forecast detected in Coastal & Central Corridors.
+<!-- ======================== SIMULATION ======================== -->
+<div class="section" id="section-simulation">
+  <div class="simulation-container">
+    <div class="section-header">
+      <div class="section-title"><span>DISASTER</span> SIMULATION ENGINE</div>
+      <div style="font-size:11px;color:var(--gray)">SELECT SCENARIO TO SIMULATE</div>
+    </div>
+    <div class="sim-scenarios">
+      <div class="sim-card active" onclick="runSim('cyclone',this)">
+        <div class="sim-icon">🌀</div>
+        <div class="sim-name">Cyclone Landfall</div>
+        <div class="sim-category">Indian Ocean — Category 3</div>
+      </div>
+      <div class="sim-card" onclick="runSim('flood',this)">
+        <div class="sim-icon">🌊</div>
+        <div class="sim-name">Major Flood Event</div>
+        <div class="sim-category">Coastal + Inland Rivers</div>
+      </div>
+      <div class="sim-card" onclick="runSim('rain',this)">
+        <div class="sim-icon">⛈️</div>
+        <div class="sim-name">Extreme Rainfall</div>
+        <div class="sim-category">Multi-region Event</div>
+      </div>
+      <div class="sim-card" onclick="runSim('drought',this)">
+        <div class="sim-icon">☀️</div>
+        <div class="sim-name">Drought Escalation</div>
+        <div class="sim-category">Southern Highlands</div>
+      </div>
+    </div>
+
+    <div class="sim-results">
+      <div class="card">
+        <div class="card-title" id="simScenarioTitle">CYCLONE LANDFALL — SIMULATION RESULTS</div>
+        <div class="sim-metric-grid">
+          <div class="sim-metric">
+            <div class="sim-metric-label">Affected Districts</div>
+            <div class="sim-metric-val red" id="simDistricts">12</div>
+          </div>
+          <div class="sim-metric">
+            <div class="sim-metric-label">Exposed Population</div>
+            <div class="sim-metric-val orange" id="simPop">3.8M</div>
+          </div>
+          <div class="sim-metric">
+            <div class="sim-metric-label">Infra. Impact</div>
+            <div class="sim-metric-val red" id="simInfra">$540M</div>
+          </div>
+          <div class="sim-metric">
+            <div class="sim-metric-label">Emergency Funding</div>
+            <div class="sim-metric-val gold" id="simFunding">$78M</div>
+          </div>
+        </div>
+        <div style="margin-top:1rem;">
+          <div style="font-size:11px;color:var(--green);margin-bottom:8px;letter-spacing:1px;font-weight:600">DISTRICT IMPACT LEVELS</div>
+          <div class="sim-districts" id="simDistrictList">
+            <!-- Generated by JS -->
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">EMERGENCY RESPONSE PRIORITY</div>
+        <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:1rem;">
+          <div style="padding:10px 12px;border-radius:6px;background:rgba(230,57,70,0.1);border:1px solid rgba(230,57,70,0.3);">
+            <div style="font-size:11px;font-weight:700;color:var(--red);margin-bottom:4px">P1 — IMMEDIATE (0-24h)</div>
+            <div style="font-size:11px;color:var(--gray)" id="simP1">Search & rescue. Coastal evacuation. Emergency shelters activation.</div>
+          </div>
+          <div style="padding:10px 12px;border-radius:6px;background:rgba(244,162,97,0.1);border:1px solid rgba(244,162,97,0.3);">
+            <div style="font-size:11px;font-weight:700;color:var(--orange);margin-bottom:4px">P2 — SHORT-TERM (24-72h)</div>
+            <div style="font-size:11px;color:var(--gray)" id="simP2">Infrastructure assessment. Emergency supply chains. Medical deployment.</div>
+          </div>
+          <div style="padding:10px 12px;border-radius:6px;background:rgba(200,168,75,0.1);border:1px solid rgba(200,168,75,0.3);">
+            <div style="font-size:11px;font-weight:700;color:var(--gold);margin-bottom:4px">P3 — MEDIUM-TERM (3-30 days)</div>
+            <div style="font-size:11px;color:var(--gray)" id="simP3">Reconstruction planning. Insurance claims processing. Recovery financing.</div>
+          </div>
+        </div>
+        <div style="padding:12px;border-radius:6px;border:1px solid var(--border);background:var(--glass);">
+          <div style="font-size:10px;color:var(--green);margin-bottom:6px;letter-spacing:1px">AI-GENERATED RECOMMENDATION</div>
+          <div style="font-size:11px;color:var(--gray);line-height:1.7" id="simAI">Activate National Disaster Response Committee. Pre-position $78M in emergency reserves. Coordinate with TMA for real-time track updates. Alert coastal communities via national broadcast system.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- SCENARIO TIMELINE -->
+    <div class="card" style="margin-top:16px;">
+      <div class="card-title">SCENARIO PROGRESSION TIMELINE</div>
+      <div style="display:flex;gap:0;margin-top:0.5rem;position:relative;">
+        <div style="position:absolute;top:20px;left:0;right:0;height:2px;background:var(--border2);z-index:0;"></div>
+        <div id="timelineSteps" style="display:flex;width:100%;z-index:1;">
+          <!-- Generated by JS -->
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
+<!-- ======================== ANALYTICS ======================== -->
+<div class="section" id="section-analytics">
+  <div class="analytics-container">
+    <div class="section-header">
+      <div class="section-title"><span>NATIONAL</span> RESILIENCE ANALYTICS</div>
+    </div>
+
+    <!-- Chart row 1 -->
+    <div class="analytics-grid">
+      <div class="card">
+        <div class="card-title">ANNUAL DISASTER LOSSES (USD MILLIONS)</div>
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="lossChart" role="img" aria-label="Bar chart showing Tanzania annual disaster losses 2015-2024">Annual disaster losses data</canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">CLIMATE EXPOSURE TREND BY HAZARD</div>
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="trendChart" role="img" aria-label="Line chart of climate exposure trends by hazard type 2018-2024">Climate exposure trends data</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Chart row 2 -->
+    <div class="analytics-grid">
+      <div class="card">
+        <div class="card-title">RESILIENCE FINANCING GAP ANALYSIS</div>
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="gapChart" role="img" aria-label="Stacked bar chart of resilience financing gap 2020-2025">Financing gap data</canvas>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">INFRASTRUCTURE VULNERABILITY INDEX</div>
+        <div class="chart-wrap" style="height:220px;">
+          <canvas id="infraChart" role="img" aria-label="Radar chart of infrastructure vulnerability by sector">Infrastructure vulnerability data</canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom stats -->
+    <div class="bottom-grid">
+      <div class="card">
+        <div class="card-title">RESILIENCE INVESTMENT PROJECTION</div>
+        <div style="padding:1rem 0;">
+          <div style="font-family:'Orbitron',monospace;font-size:2rem;color:var(--green);margin-bottom:4px">$4.2B</div>
+          <div style="font-size:11px;color:var(--gray)">Required 2025–2035 for full resilience</div>
+          <div style="margin-top:1rem;">
+            <div class="fin-row">
+              <div class="fin-header"><span class="fin-label">Committed (Govt + Partners)</span><span class="fin-val">$1.4B</span></div>
+              <div class="fin-track"><div class="fin-fill" style="width:33%;background:var(--green)"></div></div>
+            </div>
+            <div class="fin-row">
+              <div class="fin-header"><span class="fin-label">Pipeline Funding</span><span class="fin-val">$0.8B</span></div>
+              <div class="fin-track"><div class="fin-fill" style="width:19%;background:var(--gold)"></div></div>
+            </div>
+            <div class="fin-row">
+              <div class="fin-header"><span class="fin-label">Financing Gap</span><span class="fin-val" style="color:var(--red)">$2.0B</span></div>
+              <div class="fin-track"><div class="fin-fill" style="width:48%;background:var(--red)"></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">KEY PERFORMANCE INDICATORS</div>
+        <div class="sparkline-row">
+          <div class="sl-label">Resilience Score</div>
+          <svg class="sl-spark" viewBox="0 0 100 30"><polyline points="0,25 15,22 30,20 45,18 60,15 75,13 100,10" fill="none" stroke="var(--green)" stroke-width="2"/></svg>
+          <div class="sl-val">62.4</div><div class="sl-change dn">+8.2%</div>
+        </div>
+        <div class="sparkline-row">
+          <div class="sl-label">Annual Losses</div>
+          <svg class="sl-spark" viewBox="0 0 100 30"><polyline points="0,5 15,12 30,8 45,20 60,15 75,22 100,18" fill="none" stroke="var(--red)" stroke-width="2"/></svg>
+          <div class="sl-val">$486M</div><div class="sl-change up">+12%</div>
+        </div>
+        <div class="sparkline-row">
+          <div class="sl-label">Early Warning</div>
+          <svg class="sl-spark" viewBox="0 0 100 30"><polyline points="0,25 20,22 40,15 60,10 80,8 100,5" fill="none" stroke="var(--green)" stroke-width="2"/></svg>
+          <div class="sl-val">78%</div><div class="sl-change dn">+15%</div>
+        </div>
+        <div class="sparkline-row">
+          <div class="sl-label">Pop. Exposed</div>
+          <svg class="sl-spark" viewBox="0 0 100 30"><polyline points="0,15 20,18 40,20 60,22 80,24 100,26" fill="none" stroke="var(--orange)" stroke-width="2"/></svg>
+          <div class="sl-val">4.2M</div><div class="sl-change up">+5%</div>
+        </div>
+        <div class="sparkline-row">
+          <div class="sl-label">Response Time</div>
+          <svg class="sl-spark" viewBox="0 0 100 30"><polyline points="0,25 20,22 40,18 60,14 80,10 100,7" fill="none" stroke="var(--green)" stroke-width="2"/></svg>
+          <div class="sl-val">4.2h</div><div class="sl-change dn">-38%</div>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title">REGIONAL RESILIENCE COMPARISON</div>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="chart-bar-row"><div class="chart-bar-label" style="font-size:10px">Tanzania</div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:62%;background:var(--green)"></div></div><div class="chart-bar-val">62.4</div></div>
+          <div class="chart-bar-row"><div class="chart-bar-label" style="font-size:10px">Kenya</div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:58%;background:var(--gold)"></div></div><div class="chart-bar-val">58.1</div></div>
+          <div class="chart-bar-row"><div class="chart-bar-label" style="font-size:10px">Rwanda</div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:71%;background:var(--green)"></div></div><div class="chart-bar-val">71.2</div></div>
+          <div class="chart-bar-row"><div class="chart-bar-label" style="font-size:10px">Uganda</div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:54%;background:var(--gold)"></div></div><div class="chart-bar-val">54.0</div></div>
+          <div class="chart-bar-row"><div class="chart-bar-label" style="font-size:10px">Mozambique</div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:41%;background:var(--orange)"></div></div><div class="chart-bar-val">41.3</div></div>
+          <div class="chart-bar-row"><div class="chart-bar-label" style="font-size:10px">Ethiopia</div><div class="chart-bar-track"><div class="chart-bar-fill" style="width:48%;background:var(--gold)"></div></div><div class="chart-bar-val">48.7</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
 </div>
 
-<div class="card">
-<h2>Integrated Ministry Coordination Flow</h2>
+<!-- PRESENTATION OVERLAY -->
+<div class="presentation-overlay" id="presentationOverlay">
+  <button class="pres-close" onclick="closePresentation()">✕ CLOSE</button>
 
-<div class="flow">
-<div class="node">TMA</div>
-<div class="node">Ministry of Lands</div>
-<div class="node">Agriculture</div>
-<div class="node">Finance</div>
-<div class="node">PO-RALG</div>
-<div class="node">Infrastructure</div>
-<div class="node center-node">National Resilience Intelligence Centre</div>
-<div class="node">Emergency Response</div>
-<div class="node">Planning</div>
-<div class="node">Insurance Sector</div>
+  <div class="pres-slide active" id="slide-0">
+    <div class="landing-badge" style="margin:0 auto 2rem"><div class="pulse-dot"></div>NATIONAL STRATEGIC BRIEFING</div>
+    <div class="pres-title" style="color:var(--green)">Tanzania National Resilience<br>& Risk Intelligence Platform</div>
+    <div class="pres-body" style="font-size:1rem;margin-top:1rem">TNRRIP — A Presidential-Level National Command Architecture<br>Under PMO / Presidency</div>
+    <div style="font-family:'Orbitron',monospace;font-size:16px;color:var(--gold);margin-top:2rem;letter-spacing:3px">ONE NATIONAL SYSTEM — ONE RESILIENT TANZANIA</div>
+  </div>
+
+  <div class="pres-slide" id="slide-1">
+    <div class="pres-title">The <span style="color:var(--red)">Challenge</span></div>
+    <div class="pres-body">Tanzania faces mounting climate and disaster risks with fragmented institutional responses. Siloed data, delayed decisions, and reactive governance cost the nation an estimated <span style="color:var(--red);font-weight:600">$486M annually</span> in disaster losses — a figure rising 12% year-on-year.</div>
+    <div class="landing-stats" style="margin-top:2rem;max-width:700px;">
+      <div class="landing-stat"><span class="val" style="color:var(--red)">14</span><span class="lbl">ACTIVE RISK ZONES</span></div>
+      <div class="landing-stat"><span class="val" style="color:var(--orange)">4.2M</span><span class="lbl">POPULATION EXPOSED</span></div>
+      <div class="landing-stat"><span class="val" style="color:var(--gold)">$890M</span><span class="lbl">ECONOMIC AT RISK</span></div>
+      <div class="landing-stat"><span class="val" style="color:var(--blue)">38%</span><span class="lbl">INFRA VULNERABLE</span></div>
+    </div>
+  </div>
+
+  <div class="pres-slide" id="slide-2">
+    <div class="pres-title">The <span style="color:var(--green)">Solution</span></div>
+    <div class="pres-body">TNRRIP transforms Tanzania's fragmented risk landscape into an integrated national intelligence ecosystem. Ministries keep their mandates. Intelligence becomes unified. Decisions become predictive.</div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin-top:2rem;">
+      <div style="padding:1.5rem;border:1px solid var(--border);border-radius:8px;background:var(--glass);">
+        <div style="font-size:2rem;margin-bottom:0.5rem">🗺️</div>
+        <div style="font-weight:600;color:var(--white);margin-bottom:4px">Unified Risk Intelligence</div>
+        <div style="font-size:12px;color:var(--gray)">All hazard data centralized into one national platform</div>
+      </div>
+      <div style="padding:1.5rem;border:1px solid var(--border);border-radius:8px;background:var(--glass);">
+        <div style="font-size:2rem;margin-bottom:0.5rem">⚡</div>
+        <div style="font-weight:600;color:var(--white);margin-bottom:4px">Predictive Governance</div>
+        <div style="font-size:12px;color:var(--gray)">AI-powered early warning and decision support</div>
+      </div>
+      <div style="padding:1.5rem;border:1px solid var(--border);border-radius:8px;background:var(--glass);">
+        <div style="font-size:2rem;margin-bottom:0.5rem">💰</div>
+        <div style="font-weight:600;color:var(--white);margin-bottom:4px">Smart Financing</div>
+        <div style="font-size:12px;color:var(--gray)">Evidence-based resilience investment and risk transfer</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pres-slide" id="slide-3">
+    <div class="pres-title">The <span style="color:var(--gold)">Vision</span></div>
+    <div class="pres-body">By 2030, Tanzania becomes East Africa's leading resilient nation — with integrated national intelligence, predictive governance, and a $4.2B resilience investment architecture closing the climate financing gap.</div>
+    <div style="margin-top:2rem;font-family:'Orbitron',monospace;font-size:1.5rem;color:var(--green);line-height:1.6">
+      RESILIENT TANZANIA<br>SAFER PEOPLE<br>STRONGER ECONOMY<br>SUSTAINABLE FUTURE
+    </div>
+    <div style="margin-top:2rem;font-size:13px;color:var(--gold);letter-spacing:2px">🇹🇿 UNDER PMO / PRESIDENCY · NRRIC · TNRRIP</div>
+  </div>
+
+  <div class="pres-progress" id="presProgress"></div>
+  <div class="pres-nav">
+    <button class="pres-btn" onclick="prevSlide()">← BACK</button>
+    <button class="pres-btn" onclick="nextSlide()">NEXT →</button>
+  </div>
 </div>
 
-<p style="margin-top:20px;">
-All ministries keep their mandates while sharing intelligence through a centralized resilience architecture.
-</p>
+<!-- CHART.JS -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 
-</div>
+<script>
+// ============ STATE ============
+let currentSlide = 0;
+const totalSlides = 4;
 
-<div class="card">
-<h2>Live National Risk Map Simulation</h2>
+// ============ NAV ============
+function showSection(id) {
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('section-' + id).classList.add('active');
+  const tabs = document.querySelectorAll('.nav-tab');
+  const names = ['landing','dashboard','map','ministry','simulation','analytics'];
+  const idx = names.indexOf(id);
+  if(idx >= 0 && tabs[idx]) tabs[idx].classList.add('active');
+  if(id === 'analytics') setTimeout(initCharts, 100);
+  if(id === 'dashboard') buildRiskMatrix();
+  if(id === 'simulation') initSim('cyclone');
+}
 
-<div class="map-box">
+// ============ CLOCK ============
+function updateTime() {
+  const now = new Date();
+  const t = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit',timeZone:'Africa/Nairobi'});
+  const el = document.getElementById('navTime');
+  const d = document.getElementById('dashTime');
+  if(el) el.textContent = t;
+  if(d) d.textContent = now.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric',timeZone:'Africa/Nairobi'}) + ' ' + t;
+}
+setInterval(updateTime, 1000);
+updateTime();
 
-<div class="region high" style="top:80px; left:300px;">
-Dar es Salaam<br>Flood Risk
-</div>
+// ============ ANIMATED COUNTERS ============
+function animateCounter(el, target, suffix, duration) {
+  let start = 0; const step = target / (duration / 16);
+  const timer = setInterval(() => {
+    start = Math.min(start + step, target);
+    el.textContent = Math.round(start) + suffix;
+    if(start >= target) clearInterval(timer);
+  }, 16);
+}
+function initLandingCounters() {
+  const pop = document.getElementById('l-pop'); if(pop) animateCounter(pop, 64, 'M', 1800);
+  const dis = document.getElementById('l-districts'); if(dis) animateCounter(dis, 184, '', 1500);
+  const min = document.getElementById('l-ministries'); if(min) animateCounter(min, 12, '', 1200);
+  const sc = document.getElementById('l-score'); if(sc) animateCounter(sc, 62, '/100', 1600);
+}
+setTimeout(initLandingCounters, 200);
 
-<div class="region medium" style="top:170px; left:220px;">
-Dodoma<br>Drought Risk
-</div>
+// ============ RISK MATRIX ============
+function buildRiskMatrix() {
+  const matrix = document.getElementById('riskMatrix');
+  if(!matrix) return;
+  const data = [
+    ['rgba(0,200,150,0.6)','rgba(0,200,150,0.6)','rgba(200,168,75,0.6)','rgba(200,168,75,0.6)','rgba(244,162,97,0.6)'],
+    ['rgba(0,200,150,0.6)','rgba(200,168,75,0.6)','rgba(200,168,75,0.6)','rgba(244,162,97,0.6)','rgba(230,57,70,0.6)'],
+    ['rgba(200,168,75,0.6)','rgba(200,168,75,0.6)','rgba(244,162,97,0.6)','rgba(230,57,70,0.6)','rgba(230,57,70,0.7)'],
+    ['rgba(200,168,75,0.6)','rgba(244,162,97,0.6)','rgba(230,57,70,0.6)','rgba(230,57,70,0.7)','rgba(230,57,70,0.8)'],
+    ['rgba(244,162,97,0.6)','rgba(230,57,70,0.6)','rgba(230,57,70,0.7)','rgba(230,57,70,0.8)','rgba(230,57,70,0.9)'],
+  ];
+  const labels = [
+    ['Landslide','Drought','Flood\nLocalised','Cyclone\nCat1',''],
+    ['','','','','Cyclone\nCat3'],
+    ['','','Flood\nRegional','',''],
+    ['','','','','Flash\nFlood'],
+    ['','Coastal\nFlood','','','Major\nCyclone'],
+  ];
+  matrix.innerHTML = '';
+  for(let r=4;r>=0;r--) {
+    for(let c=0;c<5;c++) {
+      const cell = document.createElement('div');
+      cell.className = 'risk-cell';
+      cell.style.background = data[r][c];
+      cell.textContent = labels[r][c].replace('\n',' ');
+      cell.title = labels[r][c];
+      matrix.appendChild(cell);
+    }
+  }
+}
 
-<div class="region high" style="top:240px; left:330px;">
-Morogoro<br>Landslide Risk
-</div>
+// ============ MAP FILTER ============
+function filterMap(type, btn) {
+  document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
+function setMapLayer(type, btn) {
+  document.querySelectorAll('.tab-pill').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+}
 
-<div class="region low" style="top:120px; left:120px;">
-Mwanza<br>Low Risk
-</div>
+// ============ REGION POPUP ============
+function showRegionInfo(e, name, risk, pop, eco, infra, priority) {
+  e.stopPropagation();
+  const popup = document.getElementById('regionPopup');
+  document.getElementById('rp-title').textContent = name;
+  document.getElementById('rp-risk').textContent = risk;
+  document.getElementById('rp-pop').textContent = pop;
+  document.getElementById('rp-eco').textContent = eco;
+  document.getElementById('rp-infra').textContent = infra;
+  document.getElementById('rp-pri').textContent = priority;
+  const mapRect = document.getElementById('mainMap').getBoundingClientRect();
+  const x = e.clientX - mapRect.left + 10;
+  const y = e.clientY - mapRect.top - 30;
+  popup.style.left = Math.min(x, mapRect.width - 200) + 'px';
+  popup.style.top = Math.max(y, 0) + 'px';
+  popup.classList.add('show');
+  setTimeout(() => popup.classList.remove('show'), 3500);
+}
 
-<div class="region medium" style="top:280px; left:100px;">
-Mbeya<br>Moderate Risk
-</div>
+// ============ MINISTRY SELECTION ============
+const ministryData = {
+  tma: 'TMA provides real-time weather, rainfall, temperature, and seasonal forecast data. Data flows update every 6 hours into the NRRIC risk engine for early warning generation.',
+  lands: 'Ministry of Lands provides cadastral data, land use maps, and settlement locations. Critical for exposure mapping and infrastructure vulnerability assessment.',
+  agri: 'Agriculture Ministry supplies crop stress indices, livestock data, and food security indicators. Feeds drought risk modelling and agricultural resilience scoring.',
+  works: 'Works & Transport provides road, bridge, and railway condition data. Infrastructure exposure analysis identifies critical assets at risk from natural hazards.',
+  water: 'Ministry of Water provides dam levels, reservoir capacity, and hydrological flow data. Essential for flood forecasting and water security assessment.',
+  poralg: 'PO-RALG provides local disaster reports, community vulnerability data, and local government implementation capacity — the last-mile connection.',
+};
+function selectMinistry(el, id) {
+  document.querySelectorAll('#providerList .ministry-node').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ministryInfo').innerHTML = '<span style="color:var(--green);font-weight:600">DATA FLOW: </span>' + (ministryData[id] || '');
+}
+const consumerData = {
+  finance: 'NRRIC outputs risk-informed financing recommendations, contingency fund activation triggers, and disaster budget projections to support evidence-based fiscal planning.',
+  mdas: 'All ministries and departments receive sector-specific risk reports, investment prioritization guidance, and resilience mainstreaming protocols.',
+  planning: 'Ministry of Planning uses NRRIC analytics for development project appraisal, PPP risk assessment, and resilience-proofed investment decisions.',
+  insurance: 'The insurance sector accesses catastrophe modelling data, parametric trigger thresholds, and portfolio exposure reports for product design.',
+  donors: 'Development partners receive standardized risk dashboards, financing gap analyses, and results frameworks aligned with international climate finance mechanisms.',
+  community: 'Communities and private sector receive simplified early warning alerts, preparedness guidance, and local resilience action recommendations.',
+};
+function selectConsumer(el, id) {
+  document.querySelectorAll('.ministry-right .ministry-node').forEach(n => n.classList.remove('active'));
+  el.classList.add('active');
+  document.getElementById('ministryInfo').innerHTML = '<span style="color:var(--blue);font-weight:600">INTELLIGENCE OUTPUT: </span>' + (consumerData[id] || '');
+}
 
-</div>
+// ============ SIMULATION ============
+const simData = {
+  cyclone: {
+    title: 'CYCLONE LANDFALL — SIMULATION RESULTS',
+    districts: 12, pop: '3.8M', infra: '$540M', funding: '$78M',
+    districts_list: [
+      {name:'Lindi',level:'CRITICAL',pct:92,color:'var(--red)'},
+      {name:'Mtwara',level:'CRITICAL',pct:88,color:'var(--red)'},
+      {name:'Dar es Salaam',level:'HIGH',pct:74,color:'var(--orange)'},
+      {name:'Kilwa',level:'HIGH',pct:68,color:'var(--orange)'},
+      {name:'Zanzibar',level:'HIGH',pct:65,color:'var(--orange)'},
+      {name:'Rufiji',level:'MEDIUM',pct:45,color:'var(--gold)'},
+    ],
+    p1:'Search & rescue operations. Coastal evacuation in Lindi & Mtwara. Emergency shelter activation.',
+    p2:'Infrastructure assessment. Emergency supply chains. Medical deployment to affected zones.',
+    p3:'Reconstruction planning. Insurance claims processing. Recovery financing from national fund.',
+    ai:'Activate National Disaster Response Committee. Pre-position $78M in emergency reserves. Coordinate with TMA for real-time track updates. Issue national coastal evacuation advisory.',
+    timeline:['Cyclone Watch Issued','Category Upgrade to 3','Emergency Committee Activated','Coastal Evacuation Ordered','Landfall','Assessment Phase'],
+  },
+  flood: {
+    title: 'MAJOR FLOOD EVENT — SIMULATION RESULTS',
+    districts: 18, pop: '5.2M', infra: '$420M', funding: '$56M',
+    districts_list: [
+      {name:'Dar es Salaam',level:'CRITICAL',pct:94,color:'var(--red)'},
+      {name:'Morogoro',level:'HIGH',pct:78,color:'var(--orange)'},
+      {name:'Pwani',level:'HIGH',pct:72,color:'var(--orange)'},
+      {name:'Tanga',level:'HIGH',pct:65,color:'var(--orange)'},
+      {name:'Kilosa',level:'MEDIUM',pct:52,color:'var(--gold)'},
+      {name:'Kilombero',level:'MEDIUM',pct:48,color:'var(--gold)'},
+    ],
+    p1:'Flood barrier deployment. Urban drainage emergency. Flash flood alerts to all coastal districts.',
+    p2:'Road closure management. Bridge inspection. Relief food & water distribution.',
+    p3:'Drainage infrastructure repair. Flood damage assessment. Resilient reconstruction planning.',
+    ai:'Deploy emergency flood barriers to Dar es Salaam low-lying areas. Activate TMA 72-hour precipitation monitoring. Alert Ministry of Works on A7 highway flood risk. Recommend $56M emergency reserve activation.',
+    timeline:['Heavy Rainfall Warning','River Level Alert','Urban Flood Advisory','Emergency Response Launch','Peak Flood','Receding Phase'],
+  },
+  rain: {
+    title: 'EXTREME RAINFALL — SIMULATION RESULTS',
+    districts: 9, pop: '2.4M', infra: '$180M', funding: '$28M',
+    districts_list: [
+      {name:'Kilimanjaro',level:'HIGH',pct:76,color:'var(--orange)'},
+      {name:'Arusha',level:'HIGH',pct:68,color:'var(--orange)'},
+      {name:'Moshi',level:'MEDIUM',pct:55,color:'var(--gold)'},
+      {name:'Mbeya',level:'MEDIUM',pct:48,color:'var(--gold)'},
+      {name:'Njombe',level:'LOW',pct:32,color:'var(--green)'},
+      {name:'Rungwe',level:'LOW',pct:28,color:'var(--green)'},
+    ],
+    p1:'Landslide monitoring activation. Crop loss early alert. Infrastructure inspection teams deployed.',
+    p2:'Agricultural support to affected farmers. Road repair prioritization. Landslide risk zones marked.',
+    p3:'Crop insurance payouts. Slope stabilization works. Improved drainage planning.',
+    ai:'Issue landslide risk alerts for Kilimanjaro slopes. Coordinate agriculture ministry on crop insurance triggers. Request TMA extend rainfall monitoring network. Pre-position relief supplies.',
+    timeline:['Rainfall Threshold Exceeded','Landslide Watch Issued','Agricultural Alert','Emergency Teams Deployed','Peak Rainfall','Stabilization Phase'],
+  },
+  drought: {
+    title: 'DROUGHT ESCALATION — SIMULATION RESULTS',
+    districts: 15, pop: '4.1M', infra: '$95M', funding: '$42M',
+    districts_list: [
+      {name:'Mbeya',level:'CRITICAL',pct:88,color:'var(--red)'},
+      {name:'Iringa',level:'CRITICAL',pct:84,color:'var(--red)'},
+      {name:'Dodoma',level:'HIGH',pct:72,color:'var(--orange)'},
+      {name:'Singida',level:'HIGH',pct:68,color:'var(--orange)'},
+      {name:'Tabora',level:'MEDIUM',pct:55,color:'var(--gold)'},
+      {name:'Shinyanga',level:'MEDIUM',pct:48,color:'var(--gold)'},
+    ],
+    p1:'Food security emergency declaration. Water trucking to affected villages. Livestock protection.',
+    p2:'Agricultural inputs distribution. Irrigation emergency activation. Cash transfer programs.',
+    p3:'Drought-resistant crop program. Water harvesting infrastructure. Long-term irrigation investment.',
+    ai:'Declare food security emergency in Southern Highlands. Activate $42M drought contingency fund. Coordinate FAO & WFP for food assistance pipeline. Issue agricultural emergency to Ministry of Agriculture.',
+    timeline:['Rainfall Deficit Detected','Drought Watch Issued','Agricultural Alert','Food Security Emergency','Peak Drought','Recovery Phase'],
+  },
+};
 
-</div>
+function runSim(type, clickedCard) {
+  document.querySelectorAll('.sim-card').forEach(c => c.classList.remove('active'));
+  clickedCard.classList.add('active');
+  initSim(type);
+}
 
-<div class="card">
-<h2>Scenario Simulation</h2>
+function initSim(type) {
+  const d = simData[type];
+  if(!d) return;
+  document.getElementById('simScenarioTitle').textContent = d.title;
+  document.getElementById('simDistricts').textContent = d.districts;
+  document.getElementById('simPop').textContent = d.pop;
+  document.getElementById('simInfra').textContent = d.infra;
+  document.getElementById('simFunding').textContent = d.funding;
+  document.getElementById('simP1').textContent = d.p1;
+  document.getElementById('simP2').textContent = d.p2;
+  document.getElementById('simP3').textContent = d.p3;
+  document.getElementById('simAI').textContent = d.ai;
 
-<p><strong>Scenario:</strong> Cyclone landfall + Extreme Rainfall Event</p>
+  const list = document.getElementById('simDistrictList');
+  list.innerHTML = d.districts_list.map(r => `
+    <div class="sim-district-row">
+      <div class="sim-district-name">${r.name}</div>
+      <div class="sim-district-bar"><div class="sim-district-fill" style="width:${r.pct}%;background:${r.color}"></div></div>
+      <div class="sim-district-level" style="color:${r.color}">${r.level}</div>
+    </div>
+  `).join('');
 
-<ul>
-<li>Projected districts affected: 18</li>
-<li>Road infrastructure exposure: 740 km</li>
-<li>Estimated emergency funding required: USD 74M</li>
-<li>Priority evacuation zones automatically identified</li>
-<li>Emergency dashboard shared with PMO and ministries</li>
-</ul>
+  const tl = document.getElementById('timelineSteps');
+  tl.innerHTML = d.timeline.map((step, i) => `
+    <div style="flex:1;text-align:center;position:relative;">
+      <div style="width:16px;height:16px;border-radius:50%;background:${i<=2?'var(--green)':'var(--navy3)'};border:2px solid ${i<=2?'var(--green)':'var(--border)'};margin:12px auto 8px;position:relative;z-index:1;"></div>
+      <div style="font-size:9px;color:${i<=2?'var(--green)':'var(--gray)'};line-height:1.3">${step}</div>
+      ${i<d.timeline.length-1?`<div style="position:absolute;top:20px;left:50%;right:-50%;height:2px;background:${i<2?'var(--green)':'var(--border2)'};z-index:0;"></div>`:''}
+    </div>
+  `).join('');
+}
 
-<h3>AI Decision Support</h3>
-<p>
-The system automatically combines climate forecasts, exposure data, population vulnerability,
-and infrastructure intelligence to support national decision-making before disaster impacts escalate.
-</p>
+// ============ CHARTS ============
+let chartsInited = false;
+function initCharts() {
+  if(chartsInited) return;
+  chartsInited = true;
 
-</div>
+  // Loss chart
+  new Chart(document.getElementById('lossChart'), {
+    type: 'bar',
+    data: {
+      labels: ['2015','2016','2017','2018','2019','2020','2021','2022','2023','2024'],
+      datasets: [{
+        label: 'Disaster Losses (USD M)',
+        data: [180, 240, 195, 310, 280, 420, 350, 480, 430, 486],
+        backgroundColor: ['#1d9e75','#1d9e75','#1d9e75','#f4a261','#f4a261','#e63946','#f4a261','#e63946','#f4a261','#e63946'],
+        borderRadius: 3,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8ba3bc', font: { size: 10 } }, grid: { color: 'rgba(0,200,150,0.08)' } },
+        y: { ticks: { color: '#8ba3bc', font: { size: 10 }, callback: v => '$'+v+'M' }, grid: { color: 'rgba(0,200,150,0.08)' } }
+      }
+    }
+  });
 
-</div>
+  // Trend chart
+  new Chart(document.getElementById('trendChart'), {
+    type: 'line',
+    data: {
+      labels: ['2018','2019','2020','2021','2022','2023','2024'],
+      datasets: [
+        { label: 'Flood', data: [30,38,55,48,65,60,72], borderColor: '#4cc9f0', backgroundColor: 'rgba(76,201,240,0.1)', tension: 0.4, pointRadius: 3, borderWidth: 2 },
+        { label: 'Drought', data: [25,30,28,40,38,45,50], borderColor: '#f4a261', backgroundColor: 'rgba(244,162,97,0.1)', tension: 0.4, pointRadius: 3, borderWidth: 2 },
+        { label: 'Cyclone', data: [15,20,18,25,30,28,35], borderColor: '#e63946', backgroundColor: 'rgba(230,57,70,0.1)', tension: 0.4, pointRadius: 3, borderWidth: 2 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { ticks: { color: '#8ba3bc', font: { size: 10 } }, grid: { color: 'rgba(0,200,150,0.08)' } },
+        y: { ticks: { color: '#8ba3bc', font: { size: 10 } }, grid: { color: 'rgba(0,200,150,0.08)' } }
+      }
+    }
+  });
 
-<footer>
-Prototype Vision — Tanzania Predictive Resilience Architecture
-</footer>
+  // Gap chart
+  new Chart(document.getElementById('gapChart'), {
+    type: 'bar',
+    data: {
+      labels: ['2020','2021','2022','2023','2024','2025'],
+      datasets: [
+        { label: 'Committed', data: [180,210,240,280,320,380], backgroundColor: '#1d9e75', borderRadius: 2 },
+        { label: 'Pipeline', data: [60,80,100,120,140,180], backgroundColor: '#c8a84b', borderRadius: 2 },
+        { label: 'Gap', data: [360,390,420,450,430,390], backgroundColor: '#e63946', borderRadius: 2 },
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { stacked: true, ticks: { color: '#8ba3bc', font: { size: 10 } }, grid: { color: 'rgba(0,200,150,0.08)' } },
+        y: { stacked: true, ticks: { color: '#8ba3bc', font: { size: 10 }, callback: v => '$'+v+'M' }, grid: { color: 'rgba(0,200,150,0.08)' } }
+      }
+    }
+  });
 
+  // Radar chart
+  new Chart(document.getElementById('infraChart'), {
+    type: 'radar',
+    data: {
+      labels: ['Roads','Energy','Water','Health','Schools','Ports'],
+      datasets: [{
+        label: 'Vulnerability %',
+        data: [42, 31, 28, 22, 19, 35],
+        backgroundColor: 'rgba(230,57,70,0.15)',
+        borderColor: '#e63946',
+        pointBackgroundColor: '#e63946',
+        borderWidth: 2,
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        r: {
+          ticks: { color: '#8ba3bc', font: { size: 9 }, backdropColor: 'transparent' },
+          grid: { color: 'rgba(0,200,150,0.12)' },
+          angleLines: { color: 'rgba(0,200,150,0.12)' },
+          pointLabels: { color: '#8ba3bc', font: { size: 10 } }
+        }
+      }
+    }
+  });
+}
+
+// ============ PRESENTATION ============
+function startPresentation() {
+  currentSlide = 0;
+  const overlay = document.getElementById('presentationOverlay');
+  overlay.classList.add('active');
+  buildProgress();
+  showSlide(0);
+}
+function closePresentation() {
+  document.getElementById('presentationOverlay').classList.remove('active');
+}
+function buildProgress() {
+  const prog = document.getElementById('presProgress');
+  prog.innerHTML = Array.from({length: totalSlides}, (_,i) =>
+    `<div class="pres-dot ${i===0?'active':''}" id="pdot-${i}"></div>`
+  ).join('');
+}
+function showSlide(idx) {
+  document.querySelectorAll('.pres-slide').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.pres-dot').forEach(d => d.classList.remove('active'));
+  const sl = document.getElementById('slide-'+idx);
+  if(sl) sl.classList.add('active');
+  const dot = document.getElementById('pdot-'+idx);
+  if(dot) dot.classList.add('active');
+  currentSlide = idx;
+}
+function nextSlide() {
+  if(currentSlide < totalSlides - 1) showSlide(currentSlide + 1);
+}
+function prevSlide() {
+  if(currentSlide > 0) showSlide(currentSlide - 1);
+}
+
+// Initialize
+buildRiskMatrix();
+initSim('cyclone');
+</script>
 </body>
 </html>
